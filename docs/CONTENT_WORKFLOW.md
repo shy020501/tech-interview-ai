@@ -47,6 +47,10 @@ Choose a version in **Version history**. For a draft, edit:
 - Evaluation package: reference answer, rubric, alternatives, misconceptions, hints, completion criteria and examples.
 - Sources/provenance: optional references with relation type and attribution notes, stored for this version.
 
+Each Evaluation package subsection starts expanded. Click its heading, or focus it and press Enter/Space,
+to collapse or expand it independently. Collapsing keeps unsaved field contents and does not mark the draft
+as changed. Browser form validation reopens a section containing an invalid input before focusing the field.
+
 Rubric/hint/example IDs are generated on add and remain stable through edits/reordering. Remove dependent
 references before deleting a rubric node. Prerequisites are a DAG, not a required order of conversation.
 Hint level is an integer; order within the same level follows the editor list.

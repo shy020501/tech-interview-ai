@@ -158,6 +158,20 @@ new authenticated end-to-end actions in your own browser; confirmed deletion is 
   mobile layout. A separate Firefox reduced-motion session verified immediate scrolling. Screenshots inspected.
   Server responses were simulated; no hosted data was changed. No schema/dependency/milestone changes.
 
+## M3 follow-up — collapsible evaluation subsections (2026-10-06)
+
+- All seven Evaluation package subsections (reference answer, rubric, alternatives, misconceptions,
+  hints, completion criteria and examples) start expanded and can be toggled independently.
+- Native details/summary controls support pointer and keyboard interaction, including read-only versions.
+  Fields stay mounted: collapsing preserves unsaved text, JSON validation state and draft save behavior.
+  Browser form validation reopens invalid sections before focusing the field; toggles do not mark a draft dirty.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
+  `git diff --check`: PASS.
+- Headless Firefox with actual components verified initial expansion, independent toggles, Enter/Space,
+  input retention across rerenders, invalid collapsed JSON blocking save and reopening, save/reopen behavior,
+  read-only navigation and 500px layout. Desktop/mobile screenshots inspected. The isolated fixture simulated
+  server responses; no hosted data was changed. No schema, dependencies or milestone changes.
+
 ## Still mock / not implemented
 
 - Interview feedback and progress remain explicitly scripted; no personal correctness/rubric judgment.
