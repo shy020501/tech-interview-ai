@@ -329,9 +329,12 @@ migration과 `supabase/tests/rls.sql`을 실행했다. 이후 사용자가 가�
 Admin/Categories/Problems 화면 열람도 사용자 보고로 확인했다. 자동화된 계정 검증과 구분한다.
 추가로 관리자의 드론 문제 reference answer/rubric 열람, Finish 후 대화·힌트 review,
 logout/재로그인 후 완료 기록 유지도 사용자가 확인했다.
-hosted 계정 간 RLS, 일반 계정의 private table 직접 조회 차단, session 만료/refresh와 동시성 검증은 남아 있다.
+hosted SQL Editor의 RLS 검사도 오류 없이 finish_interview/UUID 결과가 나왔다는 사용자 보고로 통과 기록했다.
+이는 DB role/claim을 전환하는 synthetic 사용자 검사이며 실제 Auth 토큰을 사용하는 HTTP 검사와 구분한다.
+Codex의 후속 공개 Data API 조회에서는 category 9개/problem 3개와 공개 테스트 행 부재를 확인했다.
+실제 Auth 세션 간 HTTP 격리, private table Data API 접근 차단, session 만료/refresh와 동시성 검증은 남아 있다.
 로컬 lint/typecheck/test/build와 bundle/import 경계 검사는 실제 실행 결과를 STATUS에 기록한다.
-동적 인터뷰 HTML/RSC와 auth 사용자 간 격리는 실제 프로젝트를 연결한 뒤 검증해야 한다.
+로그인된 동적 인터뷰 HTML/RSC와 실제 Auth 세션 간 HTTP 격리는 별도 검증 항목이다.
 
 공식 참고: [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/nextjs),
 [RLS와 grants](https://supabase.com/docs/guides/database/postgres/row-level-security),

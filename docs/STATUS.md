@@ -2,7 +2,7 @@
 
 Current milestone: **M2**
 
-Status: **Core M2 browser flows confirmed by user; hosted isolation/RLS verification pending**
+Status: **Core M2 browser flows and hosted RLS SQL checks confirmed by user**
 
 Last updated: 2026-10-06 (Asia/Seoul)
 
@@ -15,7 +15,9 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 관리자 드론 문제의 reference answer/rubric, Finish 후 대화·힌트 review, Sign out/재로그인 후
 완료 기록 유지까지 사용자 확인이 끝났다.
 이는 사용자 보고이며 자동화된 계정 검증과 구분한다.
-사용자 간 데이터 격리와 실제 DB 권한 검사 등 아래 미검증 항목은 남아 있으며 M3는 미착수다.
+이어 사용자가 hosted SQL Editor에서 RLS 검사 실행 후 오류 없이 finish_interview/UUID 결과가 나왔다고 보고했다.
+준비된 SQL의 DB role/claim 기반 격리·권한 검사는 사용자 실행 기준 통과로 기록한다.
+실제 Auth 세션별 HTTP 검증 등 아래 미검증 항목은 별도로 남아 있으며 M3는 미착수다.
 
 ## Completed — repository implementation
 
@@ -46,16 +48,19 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 - 관리자 Problems에서 드론 문제의 Evaluation package 안에 reference answer와 reasoning rubric이 보이는 것을 확인했다.
 - Finish interview 후 본인의 저장된 대화와 사용한 힌트가 review에 표시되는 것을 확인했다.
 - Sign out 후 다시 로그인해도 `/review`의 완료 기록이 유지되는 것을 확인했다.
-- 사용자의 브라우저 수동 확인 결과다. Codex가 계정 credential을 받아 재현하거나 DB row를 직접 검사한 것은 아니다.
+- `supabase/tests/rls.sql` 전체 실행 안내 후 오류 없이 finish_interview/UUID 결과가 표시됐다고 보고했다.
+  준비된 anon/user A/user B/admin SQL assertion 통과로 기록하며 실제 Auth 토큰을 사용한 HTTP 테스트와 구분한다.
+- 브라우저와 SQL Editor의 사용자 확인 결과다. Codex가 사용자 credential을 받아 해당 실행을 재현한 것은 아니다.
 
 ## Not yet verified against hosted Supabase
 
 - 만료된 session의 자동 refresh
-- 로그인된 일반 계정의 Admin 하위 route 차단 및 private package 직접 조회 차단
-- 두 일반 계정 사이의 데이터 격리, 일반 user의 role 변경 차단, 실제 RLS/column grant 실행 결과
-- hosted DB에서 supabase/tests/rls.sql 실행과 로그인된 인터뷰 payload 검사
+- 로그인된 일반 계정의 Admin 하위 route 차단 및 실제 Auth 토큰을 사용한 private package Data API 접근 차단
+- 서로 다른 실제 Auth 세션의 브라우저/HTTP 데이터 격리 (DB role/claim 기반 SQL 격리 검사는 사용자 실행 기준 통과)
+- 로그인된 인터뷰의 실제 HTML/RSC payload 검사와 동시 요청 검증
 
-익명 Data API/페이지 경계와 로컬 SQL role 검증은 완료했다. 위 항목은 해당 결과와 구분한다.
+익명 Data API/페이지 경계, 로컬 SQL role 검사와 사용자 실행 hosted SQL 검사는 완료했다.
+위 항목은 해당 결과와 구분한다.
 실행 순서는 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)를 따른다.
 
 ## Still mock / intentionally not implemented
@@ -170,6 +175,10 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 - 사용자가 가입 메일 수신 문제 해결과 위 인터뷰 저장/복원 흐름을 확인했다.
 - 이어 일반 계정의 `/admin` 접근 차단과 첫 관리자 지정 안내 후 Admin/Categories/Problems 화면 열람도 사용자 확인으로 기록했다.
 - 관리자 정답/rubric 열람, Finish 후 대화·힌트 review, Sign out/재로그인 후 완료 기록 유지의 세 항목도 사용자가 모두 확인했다.
+- hosted RLS SQL 실행 후 오류 없이 finish_interview/UUID 결과를 확인했다는 사용자 보고를 기록했다.
+  마지막 SELECT는 테스트 attempt ID를 반환하며 이후 DO assertion, RESET ROLE, ROLLBACK은 결과 행을 반환하지 않는다.
+- Codex가 publishable key로 공개 Data API를 읽기 전용 조회했다. categories 200/9개, problems 200/3개,
+  두 조회의 m2-rls-* 테스트 행은 각각 0개였다. private/Auth 테스트 행의 잔존 여부를 직접 조회한 것은 아니다.
 - STATUS, README, SUPABASE_SETUP, ARCHITECTURE의 현재 검증 상태를 맞췄다.
 - 문서만 변경했다. `git diff --check`로 변경 형식을 검사하며 lint/typecheck/test/build는 재실행하지 않는다.
 - Auth 설정, DB 권한, UI, 기존 서버를 변경하지 않았고 M3를 시작하지 않았다.
@@ -191,7 +200,7 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 
 **M3 — Admin content lifecycle and problem package management**
 
-- 먼저 남은 hosted 계정 간 격리/RLS/session refresh/payload 검증을 완료한다.
+- 남은 실제 Auth 세션의 HTTP 격리/session refresh/payload 검증 범위를 확인한다.
 - DB-backed category/problem version 편집과 private package 검수 흐름을 설계한다.
 - draft → review → human-approved publish와 변경 이력을 구현한다.
 - 현재 source/candidate demo와 실제 관리 workflow의 경계를 정리한다.

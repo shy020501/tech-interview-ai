@@ -6,8 +6,9 @@ Supabase check 성공과 실제 공개 category 9개/published 문제 3개 조�
 메시지/힌트 저장 및 새로고침 복원을 확인했다. 일반 계정의 `/admin` 접근 차단과 첫 관리자 지정 안내 후
 `/admin`, `/admin/categories`, `/admin/problems` 화면 열람도 사용자 확인이 끝났다.
 관리자 드론 문제의 정답/rubric 열람, Finish 후 대화·힌트 review, Sign out/재로그인 후 완료 기록 유지도 확인했다.
-현재 프로젝트는 아래 6–7번의 남은 검증을 이어간다. 일반 계정의 Admin 하위 route/private table 접근 차단,
-사용자 간 격리, session 만료 후 refresh와 로그인된 payload 검사는 **STATUS의 미검증 목록을 따른다.**
+hosted SQL Editor의 RLS 검사도 사용자 실행 기준 통과로 기록했다. 공개 Data API에서 category 9개/problem 3개와
+공개 테스트 행 부재를 추가 확인했다. 실제 Auth 세션의 HTTP 격리, session refresh와 로그인된 payload 등은
+**STATUS의 미검증 목록을 따른다.**
 기존 migration을 SQL editor에서 다시 실행할 필요가 없다. 실제 검증 결과는 STATUS에 기록한다.
 
 ## 1. Project와 환경 변수
@@ -159,8 +160,13 @@ order by tablename, policyname;
 `supabase/tests/rls.sql` 전체를 실행한다. synthetic 사용자/문제를 transaction에 만들고
 anon/user A/user B/admin 역할별 허용/거절, role 위조 방지, 다른 사용자 session 격리,
 메시지/힌트 재시도, 버전 고정, 완료 후 변경 거절을 검사한 뒤 rollback한다. 예외가 나면 실패다.
-CLI/pgTAP extension은 필요 없다. 이 SQL은 로컬 PGlite의 최소 Auth stub에서 통과했지만,
-**hosted Supabase에서 이 전체 SQL suite를 실행한 것은 아니다.** 실제 익명 Data API 차단 결과와도 구분한다.
+CLI/pgTAP extension은 필요 없다. 이 SQL은 로컬 PGlite의 최소 Auth stub에서 통과했다.
+2026-10-06 전체 실행 안내 후 사용자가 hosted SQL Editor에서 오류 없이 finish_interview/UUID 결과를 보고했다.
+hosted SQL 검사는 사용자 실행 기준 통과로 기록하며 Codex의 직접 실행이나 실제 Auth 토큰의 HTTP 검사와 구분한다.
+
+결과에 `finish_interview`와 UUID 한 행이 보이는 것은 정상이다. 마지막 SELECT가 테스트 attempt ID를 반환한다.
+그 뒤 DO assertion, RESET ROLE, ROLLBACK은 결과 행을 만들지 않는다. **BEGIN부터 마지막 ROLLBACK까지
+전체 실행했고 오류가 없을 때** 준비된 SQL 검사가 통과한 것이다. UUID 출력만으로 부분 실행의 성공을 판정하지 않는다.
 
 일반 계정에서 private table SELECT는 row가 없거나 권한 거절이어야 한다. 직접 attempt/message/hint
 INSERT/UPDATE/DELETE는 거절되어야 하며 본인 확인 RPC만 변경을 허용한다. Admin에게도 다른 사용자의
