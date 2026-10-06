@@ -62,6 +62,7 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 익명 Data API/페이지 경계, 로컬 SQL role 검사와 사용자 실행 hosted SQL 검사는 완료했다.
 위 항목은 해당 결과와 구분한다.
 실행 순서는 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)를 따른다.
+남은 실제 계정 검사의 명령과 성공 기준은 [M2_VERIFICATION.md](M2_VERIFICATION.md)에 정리했다.
 
 ## Still mock / intentionally not implemented
 
@@ -182,6 +183,18 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 - STATUS, README, SUPABASE_SETUP, ARCHITECTURE의 현재 검증 상태를 맞췄다.
 - 문서만 변경했다. `git diff --check`로 변경 형식을 검사하며 lint/typecheck/test/build는 재실행하지 않는다.
 - Auth 설정, DB 권한, UI, 기존 서버를 변경하지 않았고 M3를 시작하지 않았다.
+
+## Authenticated verification tooling (2026-10-06)
+
+- `pnpm verify:access`와 M2_VERIFICATION 안내를 추가했다. 기존 SDK만 사용하며 runtime UI/API/DB schema는 바꾸지 않는다.
+- 두 실제 계정의 password Auth identity, profile role, 본인 데이터 조회를 먼저 확인하고 양방향 타인 기록 및 private package SELECT 경계를 검사한다.
+- A=admin/B=user를 강제하고 실제 존재하는 데이터로 검사한다. 401/403/네트워크 실패나 빈 테스트 자료를 통과로 처리하지 않는다.
+- 도메인 데이터는 읽기만 한다. CLI 로그인 세션은 메모리에만 두고 정상 종료 시 해당 세션만 local sign-out한다.
+- `pnpm test`: 21개 성공. 신규 10개는 메모리 내 fake HTTP 응답과 실제 SDK를 사용한 검증 도구 테스트이며 hosted 검증이 아니다.
+- `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm check:boundaries` 성공. 경계 검사는 client 9/browser chunk 15/static HTML 3개다.
+- CLI를 실제 PTY에서 열어 비밀번호 입력 문자가 출력되지 않는지 확인했다. 제출 전 Ctrl+C로 취소했으며 Auth 요청은 보내지 않았다.
+- 비대화형 실행은 설명과 exit 1로 차단됨을 확인했다. 테스트 실행에는 실제 계정 비밀번호/토큰을 사용하지 않았다.
+- 실제 계정으로 `pnpm verify:access`를 끝까지 실행하거나 로그인된 브라우저 응답을 검사한 것은 아니다. 위 미검증 목록은 유지한다.
 
 ## UI regression scope
 

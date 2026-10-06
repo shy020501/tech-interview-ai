@@ -11,7 +11,7 @@ GitHub integration으로 Supabase schema와 초기 catalog를 적용했고 공�
 관리자의 정답/rubric 열람, 인터뷰 완료 review, logout/재로그인 후 완료 기록 유지도 사용자 확인이 끝났다.
 hosted SQL Editor의 RLS 검사도 사용자 실행 기준 통과로 기록했다. 실제 Auth 세션의 HTTP 격리/session 등
 미검증 범위는 [현재 상태](docs/STATUS.md)에 구분해 기록한다.
-다음 확인 순서는 [Supabase 설정 안내](docs/SUPABASE_SETUP.md)의 Admin/RLS/브라우저 검증을 따른다.
+다음 확인 순서는 [M2 검증 절차](docs/M2_VERIFICATION.md)의 두 계정 Data API/route/응답 검사를 따른다.
 새 Supabase 프로젝트를 연결하는 경우에는 해당 문서의 migration 설정도 필요하다.
 
 ## 개발 환경
@@ -68,6 +68,7 @@ ssh -N -L 3001:127.0.0.1:3001 user@server
 | `pnpm test` | Node 내장 runner로 domain/auth validation/seed/정적 정책 검사 |
 | `pnpm build` | production build 생성; 배포는 하지 않음 |
 | `pnpm check:boundaries` | build 후 client import/browser JS/정적 public HTML 경계 검사 |
+| `pnpm verify:access` | A(admin)/B(user) 계정으로 실제 Data API의 읽기 권한 검사; 비밀번호는 터미널에서 숨김 입력 |
 | `pnpm seed:generate` | 보존한 seed 자료로 초기 SQL 재생성 (DB 적용 안 함) |
 | `pnpm start` | build 결과를 같은 loopback 주소/포트에서 로컬 확인 |
 
@@ -139,6 +140,7 @@ source/candidate/eval은 demo이며 source fetch나 evaluator 호출을 하지 �
 - [Architecture](docs/ARCHITECTURE.md): 데이터/권한 경계, LLM, 평가, source pipeline
 - [현재 상태](docs/STATUS.md): 완료 항목, 미구현 범위, 실제 검증 결과
 - [Supabase 설정](docs/SUPABASE_SETUP.md): project/env/migration/seed/Auth/admin/RLS 검증
+- [M2 검증 절차](docs/M2_VERIFICATION.md): 두 실제 계정의 Data API/route 격리와 로그인된 응답 검사
 
 다음 milestone은 M3의 Admin content lifecycle과 problem package 관리다.
 M2 이후 별도 사용자 지시 전까지 진행하지 않는다.

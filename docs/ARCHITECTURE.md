@@ -335,6 +335,10 @@ Codex의 후속 공개 Data API 조회에서는 category 9개/problem 3개와 �
 실제 Auth 세션 간 HTTP 격리, private table Data API 접근 차단, session 만료/refresh와 동시성 검증은 남아 있다.
 로컬 lint/typecheck/test/build와 bundle/import 경계 검사는 실제 실행 결과를 STATUS에 기록한다.
 로그인된 동적 인터뷰 HTML/RSC와 실제 Auth 세션 간 HTTP 격리는 별도 검증 항목이다.
+`pnpm verify:access`는 두 실제 Auth 세션의 Data API SELECT 경계를 검사하는 로컬 CLI다.
+기존 SDK와 publishable key만 사용하며 인증 정보는 메모리에 두고 명령의 세션만 local sign-out한다.
+본인 데이터와 admin의 실제 package 조회를 먼저 확인하여 만료 세션/빈 자료를 통과로 오인하지 않는다.
+앱 route와 HTML/RSC/Server Action 응답은 [M2_VERIFICATION.md](M2_VERIFICATION.md)의 별도 브라우저 절차로 확인한다.
 
 공식 참고: [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/nextjs),
 [RLS와 grants](https://supabase.com/docs/guides/database/postgres/row-level-security),

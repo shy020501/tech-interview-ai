@@ -14,6 +14,7 @@
     "typecheck": "NEXT_TELEMETRY_DISABLED=1 next typegen && tsc --noEmit",
     "test": "node --test --test-isolation=none tests/*.test.mjs",
     "check:boundaries": "node scripts/check-public-boundaries.mjs",
+    "verify:access": "node scripts/verify-authenticated-access.mjs",
     "seed:generate": "node scripts/generate-seed.mjs"
   },
   "dependencies": {

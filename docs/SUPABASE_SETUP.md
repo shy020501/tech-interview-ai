@@ -174,6 +174,9 @@ attempt 조회 권한을 암묵적으로 주지 않는다. reasoning_state는 �
 
 ## 7. 로컬 실행과 브라우저 검증
 
+남은 실제 Auth 세션 검증의 실행 순서와 성공 기준은 [M2_VERIFICATION.md](M2_VERIFICATION.md)를 따른다.
+`pnpm verify:access`는 도메인 데이터를 읽기만 하며 별도 관리자 키 없이 두 계정의 Data API 경계를 검사한다.
+
 환경 변수 설정을 마친 뒤 기존 개발 서버를 실행한 터미널에서 정상 종료하고 다시 시작한다.
 다른 프로세스를 임의로 종료하지 않는다. `NEXT_PUBLIC_*`를 바꾼 production build는 다시 생성해야 한다.
 
