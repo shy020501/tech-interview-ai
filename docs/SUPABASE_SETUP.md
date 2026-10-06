@@ -76,15 +76,16 @@ Supabase 기본 project DB의 migration 적용이며 Next.js 사이트 hosting/p
 - 기존 debrief 문구도 seed-data의 deferredDebriefs에 보존했다. M2 SQL/runtime에서는 사용하지 않는다.
 - 사용자/profile/admin 계정 seed는 없다. 실제 사용자 생성은 Auth로 한다.
 
-`supabase/seed-data.json`은 초기 개발 자료이고 runtime은 DB만 조회한다. seed를 수정한 경우
-`pnpm seed:generate`로 SQL을 재생성한다. seed 재실행은 빠진 row만 추가하며 이미 편집한 row는
-덮어쓰지 않는다. 기존 DB 콘텐츠 변경은 별도의 migration 또는 후속 관리 workflow에서 수행한다.
+`supabase/seed-data.json`은 초기 개발 자료이고 runtime은 DB만 조회한다. `pnpm seed:generate`는
+보존한 초기 자료에서 SQL 파일만 재생성한다. M3 이후 새 콘텐츠는 Admin workflow에서 작성한다.
+기존 hosted DB에서 초기 seed를 콘텐츠 동기화/복구 도구로 재실행하지 않는다.
 `app_private` schema는 Data API exposed schema 목록에 추가하지 않는다.
 
 GitHub production sync는 `seed.sql`을 기본적으로 적용하지 않는다. 그래서 최초 snapshot
 `5448b4b`의 동일한 seed 내용을 고정된 `20261006000100_m2_initial_catalog.sql` data migration에
-보존했다. 이 파일은 `pnpm seed:generate`로 다시 생성하지 않는다. local/preview에서 seed.sql을
-추가 실행해도 같은 row는 건너뛰므로 중복되지 않는다. 새 사용자나 admin 계정을 자동 생성하지 않는다.
+보존했다. 이 파일은 `pnpm seed:generate`로 다시 생성하지 않는다. 초기 local/preview 실행의 동일한
+seed row는 WHERE NOT EXISTS로 건너뛴다. 이미 편집된 membership의 일부를 재추가할 수 있으므로
+편집 후 DB에는 재실행하지 않는다. 새 사용자나 admin 계정을 자동 생성하지 않는다.
 
 ## 4. Authentication 설정과 email confirmation
 
