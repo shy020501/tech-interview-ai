@@ -334,7 +334,9 @@ hosted SQL Editor의 RLS 검사도 오류 없이 finish_interview/UUID 결과가
 Codex의 후속 공개 Data API 조회에서는 category 9개/problem 3개와 공개 테스트 행 부재를 확인했다.
 이후 사용자가 M2_VERIFICATION 1~3번에 이상이 없다고 보고했다. 실제 Auth 세션의 Data API SELECT 격리,
 private package 접근 차단, 상호 review 접근 차단과 일반 계정의 Admin 6개 route 거절은 사용자 확인으로 기록한다.
-Network 요청 목록 스크린샷은 응답 본문을 보여 주지 않으므로 로그인된 payload 검사는 여전히 미확인이다.
+이후 사용자가 제공한 useful-representations의 시작 전/빈 활성 attempt RSC 응답 두 건에서는
+공개 문제와 최소 attempt 정보만 확인됐고 비공개 평가 데이터를 발견하지 못했다.
+메시지 전송/Hint/Review 응답과 새로고침 시 document 본문 검사는 아직 남아 있다.
 session 만료/refresh와 동시성도 별도 안정성 검증으로 남아 있다.
 로컬 lint/typecheck/test/build와 bundle/import 경계 검사는 실제 실행 결과를 STATUS에 기록한다.
 로그인된 동적 인터뷰 HTML/RSC/Server Action/Review 응답 본문은 별도 검증 항목이다.

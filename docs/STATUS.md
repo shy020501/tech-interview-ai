@@ -2,7 +2,7 @@
 
 Current milestone: **M2**
 
-Status: **M2 core flows, RLS SQL and authenticated read/route checks confirmed by user; response inspection pending**
+Status: **M2 implementation complete; core flows/access checks confirmed; response inspection partially verified**
 
 Last updated: 2026-10-06 (Asia/Seoul)
 
@@ -18,8 +18,9 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 이어 사용자가 hosted SQL Editor에서 RLS 검사 실행 후 오류 없이 finish_interview/UUID 결과가 나왔다고 보고했다.
 준비된 SQL의 DB role/claim 기반 격리·권한 검사는 사용자 실행 기준 통과로 기록한다.
 이후 사용자가 M2_VERIFICATION의 1~3번(계정 준비, 실제 Auth Data API SELECT, 앱 route 경계)에
-이상이 없다고 보고했다. 4번은 Network 요청 목록만 제공되어 응답 본문의 비공개 데이터 부재는
-아직 확인하지 못했다. 아래 미검증 항목은 별도로 남아 있으며 M3는 미착수다.
+이상이 없다고 보고했다. 이어 사용자가 제공한 useful-representations의 RSC 응답 두 건을 읽고
+공개 문제와 인터뷰 시작 전/빈 활성 attempt 정보만 포함하며 비공개 평가 데이터가 보이지 않음을 확인했다.
+4번의 나머지 응답 검사는 아래에 구분한다. M2 구현은 완료했으며 M3는 미착수다.
 
 ## Completed — repository implementation
 
@@ -59,8 +60,8 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 
 ## Not yet verified against hosted Supabase
 
-- 로그인된 인터뷰의 실제 HTML/RSC/Server Action/Review 응답 본문 검사 (M2_VERIFICATION 4번)
-  제공된 Network 스크린샷은 요청 이름/상태/크기만 보여 준다. HTTP 200/304만으로 데이터 부재를 판정하지 않는다.
+- 로그인된 메시지 전송/Hint/Review 응답과 새로고침 시 document HTML 응답의 비공개 데이터 부재 (M2_VERIFICATION 4번의 나머지)
+  useful-representations의 시작 전/빈 활성 attempt RSC 두 건은 아래와 같이 확인했다.
 - 만료된 session의 자동 refresh와 동시 요청 검증 (별도 안정성 검증)
 
 익명 Data API/페이지 경계, 로컬 SQL role 검사와 사용자 실행 hosted SQL 검사는 완료했다.
@@ -199,9 +200,21 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 - CLI를 실제 PTY에서 열어 비밀번호 입력 문자가 출력되지 않는지 확인했다. 제출 전 Ctrl+C로 취소했으며 Auth 요청은 보내지 않았다.
 - 비대화형 실행은 설명과 exit 1로 차단됨을 확인했다. 테스트 실행에는 실제 계정 비밀번호/토큰을 사용하지 않았다.
 - 도구를 추가할 당시 Codex가 실제 계정으로 `pnpm verify:access`를 끝까지 실행하거나 로그인된 브라우저 응답을 검사한 것은 아니다.
-  이후 사용자의 1~3번 확인 보고는 위 Confirmed by user에 기록했다. 4번 응답 본문 검사는 계속 미확인이다.
+  이후 사용자의 1~3번 확인 보고는 위 Confirmed by user에 기록했다. 4번 응답 본문은 아래 두 건만 확인했다.
 - 이번 후속 작업은 검증 상태와 Network 사용 안내 문서만 수정했다. `git diff --check`를 실행하며
   lint/typecheck/test/build는 다시 실행하지 않는다. UI, DB, Auth 설정과 기존 개발 서버는 변경하지 않는다.
+
+## Supplied RSC response inspection (2026-10-06)
+
+- 사용자가 채팅에 붙여 넣은 `/problems/useful-representations?_rsc=...` 응답 두 건을 직접 읽었다.
+  브라우저에 로그인하여 요청을 새로 실행하거나 모든 응답을 수집한 것은 아니다.
+- 첫 응답은 public problem, signedIn=true, initialAttempt=null이다.
+- 둘째는 같은 public problem과 in_progress attempt의 ID/version/time, 빈 messages/hintsUsed,
+  demoProgress=0이다. session UI 정보는 signedIn=true/isAdmin=false다.
+- 제공된 본문에서 reference answer, 전체 rubric/hint ladder, misconceptions/evaluation examples를 발견하지 못했다.
+  notFound에 포함된 공통 오류 화면 문구는 실제 문제 화면의 접근 실패를 의미하지 않는다.
+- 해당 문제/상태의 두 RSC 본문 검사로 한정한다. 채팅/힌트/Review 및 document 응답 검증으로 확대하지 않는다.
+- 검증 기록 문서만 갱신하고 `git diff --check`를 실행했다. 이번 기록 갱신에서 lint/typecheck/test/build는 재실행하지 않았다.
 
 ## UI regression scope
 
