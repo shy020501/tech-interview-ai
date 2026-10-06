@@ -4,6 +4,10 @@ M3 uses the existing Supabase project, email/password sessions and profiles.role
 All product text is English. Authoring is manual; no LLM, discovery job or external source fetch runs.
 The normal app uses the publishable key and the signed-in user's session, with no service-role key.
 
+Opening a Source, Candidate, Problem or Category editor automatically scrolls it into view, including the
+new-problem creation form. Editing fields does not reset the scroll position. Reduced-motion preferences
+use immediate scrolling. Successful saves still close the editor; failed saves retain its contents.
+
 ## 1. Register a source
 
 Open `/admin/sources` as an admin and choose **Add source**. Enter a title, HTTP/HTTPS URL,

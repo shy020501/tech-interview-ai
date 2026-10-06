@@ -9,5 +9,5 @@ export default async function PreviewPage({params,searchParams}:{params:Promise<
  await requireAdmin();const {id}=await params,{version}=await searchParams;
  const [detail,categories,problems]=await Promise.all([getAdminProblemDetail(id,version),getCategories(),getPublishedProblems()]);
  if(!detail)notFound();
- return <><div className="notice mb-5">Admin preview · Saved version {detail.version.version}. Interview actions are disabled. <Link className="text-link" href={`/admin/problems?problem=${id}&version=${detail.version.id}`}>Return to editor</Link></div><ProblemWorkspace problem={detail.problem} categories={categories} problems={problems} preview/></>;
+ return <><div className="notice mb-5">Admin preview · Saved version {detail.version.version}. Interview actions are disabled. <Link className="text-link" scroll={false} href={`/admin/problems?problem=${id}&version=${detail.version.id}`}>Return to editor</Link></div><ProblemWorkspace problem={detail.problem} categories={categories} problems={problems} preview/></>;
 }

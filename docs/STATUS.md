@@ -144,6 +144,20 @@ new authenticated end-to-end actions in your own browser; confirmed deletion is 
   Server responses were simulated; this was not a hosted authenticated mutation test.
 - No database schema, dependency, authentication or milestone changes. No hosted data was modified.
 
+## M3 follow-up — reveal opened editors (2026-10-06)
+
+- Source/Candidate/Problem/Category editors and the new-problem form scroll into view when opened.
+  A shared hook waits for the rendered element, keeps top spacing and respects reduced-motion preferences.
+  Field edits do not trigger scrolling; successful-save closure remains unchanged.
+- Problem selection, candidate conversion, version links, dashboard review links and preview-return links
+  let the editor own scrolling instead of Next's default navigation scroll.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
+  `git diff --check`: PASS.
+- Headless Firefox with actual components and long-list fixtures verified Source add/edit, Candidate selection,
+  Problem open/reopen, Category create/edit, creation-form toggling, stable scrolling during typing and 500px
+  mobile layout. A separate Firefox reduced-motion session verified immediate scrolling. Screenshots inspected.
+  Server responses were simulated; no hosted data was changed. No schema/dependency/milestone changes.
+
 ## Still mock / not implemented
 
 - Interview feedback and progress remain explicitly scripted; no personal correctness/rubric judgment.

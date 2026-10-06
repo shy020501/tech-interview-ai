@@ -357,6 +357,9 @@ validation/network failure. Draft save returns to the library; explicit Edit dra
 for continued editing or validation/publication. The new-problem creation form closes before opening its draft.
 Problem detail/package data is fetched only for an explicitly selected problem query; the library does not
 automatically select its first row. Close editor confirms discarding unsaved changes.
+A shared client hook reveals editors on opening/selection, with a small top offset and reduced-motion support.
+It does not rerun for field edits. Problem-editor navigation disables Next's default scroll so the mounted
+editor controls the destination; list/close/save navigation retains its existing behavior.
 
 `admin_delete_source`, `admin_delete_candidate` and `admin_delete_problem` use the same requireAdmin action
 and database-role RPC checks as other mutations. Table DELETE privileges remain revoked. Each delete is atomic.
