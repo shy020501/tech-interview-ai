@@ -322,9 +322,10 @@ FastAPI, Redis, Celery, vector DB, microservices, Kubernetes도 실제 필요성
 
 ## 검증 범위
 
-사용자가 제공한 Supabase URL/publishable key로 읽기 전용 연결은 확인했다. CLI는 설치하지 않았다.
-migration/RLS SQL은 작성·정적 검토했고, 실제 적용/DB Auth/RLS 실행 검증은 아직 미완료다.
-`supabase/tests/rls.sql`은 migration/seed 적용 후 별도로 실행한다.
+사용자 승인된 GitHub integration으로 schema/catalog migration을 적용했고 실제 익명 Data API와
+공개 UI/비공개 접근 차단을 확인했다. CLI는 설치하지 않았다. 로컬 PGlite에서는 최소 Auth stub으로
+migration과 `supabase/tests/rls.sql`을 실행했다. 실제 signup/login과 계정별 hosted RLS/persistence,
+동시성 검증은 아직 미완료이며 이 결과와 구분한다.
 로컬 lint/typecheck/test/build와 bundle/import 경계 검사는 실제 실행 결과를 STATUS에 기록한다.
 동적 인터뷰 HTML/RSC와 auth 사용자 간 격리는 실제 프로젝트를 연결한 뒤 검증해야 한다.
 

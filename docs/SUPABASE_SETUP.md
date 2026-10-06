@@ -1,11 +1,10 @@
 # Supabase setup — M2
 
-M2 integration code와 migration/seed가 준비되어 있다. 초기 구현 때는 credential이 없었고,
-2026-10-06 사용자가 `.env.local`을 설정한 뒤 Supabase 읽기 전용 연결을 확인했다.
-Auth settings는 정상 응답하지만 categories/problems table은 PGRST205로 조회되지 않는다.
-**Migration/seed 적용과 실제 Auth/RLS/persistence 검증은 아직 완료되지 않았다.**
-사용자가 GitHub integration과 Deploy to production을 활성화했다. 현재 적용 경로는 아래 2번의
-GitHub migration이며, 실제 실행 결과는 STATUS에 별도로 기록한다. global 설치는 필요 없다.
+2026-10-06 사용자 승인된 GitHub integration으로 M2 schema와 initial catalog migration을 적용했다.
+Supabase check 성공과 실제 공개 category 9개/published 문제 3개 조회를 확인했다.
+익명 private 데이터 접근은 거절되며, **실제 계정의 Auth/admin/persistence 검증은 아직 남아 있다.**
+다음 사용자 작업은 아래 4번의 Auth URL 설정 확인과 5번의 계정 생성이다.
+기존 migration을 SQL editor에서 다시 실행할 필요가 없다. 실제 검증 결과는 STATUS에 기록한다.
 
 ## 1. Project와 환경 변수
 
@@ -155,7 +154,8 @@ order by tablename, policyname;
 `supabase/tests/rls.sql` 전체를 실행한다. synthetic 사용자/문제를 transaction에 만들고
 anon/user A/user B/admin 역할별 허용/거절, role 위조 방지, 다른 사용자 session 격리,
 메시지/힌트 재시도, 버전 고정, 완료 후 변경 거절을 검사한 뒤 rollback한다. 예외가 나면 실패다.
-CLI/pgTAP extension은 필요 없다. **이번 환경에서는 이 SQL을 실행하지 않았다.**
+CLI/pgTAP extension은 필요 없다. 이 SQL은 로컬 PGlite의 최소 Auth stub에서 통과했지만,
+**hosted Supabase에서 이 전체 SQL suite를 실행한 것은 아니다.** 실제 익명 Data API 차단 결과와도 구분한다.
 
 일반 계정에서 private table SELECT는 row가 없거나 권한 거절이어야 한다. 직접 attempt/message/hint
 INSERT/UPDATE/DELETE는 거절되어야 하며 본인 확인 RPC만 변경을 허용한다. Admin에게도 다른 사용자의

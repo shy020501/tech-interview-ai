@@ -2,15 +2,15 @@
 
 Current milestone: **M2**
 
-Status: **Supabase connection confirmed; migration/seed application and integration verification pending**
+Status: **Database migrations applied; hosted account/session integration verification pending**
 
 Last updated: 2026-10-06 (Asia/Seoul)
 
-M2에서 요청한 integration code/SQL/setup 문서를 구현했다. 2026-10-06 사용자가 설정한
-`.env.local`의 URL/publishable key로 Supabase 읽기 전용 연결을 확인했다. Auth settings는
-HTTP 200이며 email/password 가입과 이메일 확인이 활성화되어 있다. categories/problems/private
-package 조회는 HTTP 404 / PGRST205로, API schema cache에서 해당 table을 찾지 못했다.
-Migration/seed 적용과 실제 Auth·RLS·persistence 검증은 아직 완료되지 않았다. M3는 미착수다.
+2026-10-06 사용자 승인된 GitHub–Supabase integration을 통해 foundation과 initial catalog
+migration을 적용했다. commit 7fe8256의 Supabase check가 성공했고 실제 Data API에서
+category 9개와 published 문제/version 3개를 확인했다. 익명 private/package/사용자 기록 조회는
+거절된다. 실제 계정 signup/login, admin session과 사용자별 persistence 검증은 아직 남아 있다.
+M3는 미착수다.
 
 ## Completed — repository implementation
 
@@ -30,16 +30,15 @@ Migration/seed 적용과 실제 Auth·RLS·persistence 검증은 아직 완료�
 - Supabase 미설정 시 명확한 unavailable 상태; 저장된 것처럼 보이는 mock DB fallback 없음.
 - 설정/최초 admin/RLS 검증 문서 및 실행 준비된 rollback SQL 검사 작성.
 
-## Not applied / not verified against Supabase
+## Not yet verified against hosted Supabase
 
-- migration과 seed 실행 및 생성된 schema 확인
 - 실제 signup, confirmation email, login/logout 및 session refresh
-- DB public published-only 조회, category hierarchy, admin/private package 조회
+- 실제 admin 계정의 DB category/problem/private package 조회
 - DB attempt/message/hint 저장 및 실제 reload/resume
 - 두 일반 계정 사이의 데이터 격리, 일반 user의 role 변경 차단, 실제 RLS/column grant 실행 결과
-- supabase/tests/rls.sql 실행 및 실제 DB-backed 인터뷰 payload의 Network 검사
+- hosted DB에서 supabase/tests/rls.sql 실행과 로그인된 인터뷰 payload 검사
 
-위 항목은 구현 코드가 존재하더라도 실제 서비스 연결이 완료된 것으로 기록하지 않는다.
+익명 Data API/페이지 경계와 로컬 SQL role 검증은 완료했다. 위 항목은 해당 결과와 구분한다.
 실행 순서는 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)를 따른다.
 
 ## Still mock / intentionally not implemented
@@ -62,8 +61,9 @@ Migration/seed 적용과 실제 Auth·RLS·persistence 검증은 아직 완료�
   실제 URL/key 값은 출력하거나 문서에 기록하지 않았다.
 - 2026-10-06 3001 포트가 비어 있음을 확인한 뒤 `pnpm dev`로 서버를 다시 실행했다.
   `.env.local`을 읽고 127.0.0.1:3001에서 준비 완료했다. 기존 process를 종료하지 않았다.
-- Supabase CLI/psql 설치 및 DB 변경은 하지 않았다. 이번 확인은 사용자가 제공한 프로젝트의
-  Auth settings와 Data API에 대한 읽기 전용 요청이다. LLM/유료 API 호출은 없다.
+- Supabase CLI/psql/global package를 설치하지 않았다. 사용자 승인된 GitHub integration이
+  schema/catalog migration을 실행했으며 앱에는 elevated runtime key를 추가하지 않았다.
+  프로젝트 dependency 변경 없이 /tmp에 설치한 PGlite로 로컬 SQL을 검증했다. LLM API 호출은 없다.
 
 ## Actual verification — initial implementation (2026-10-05)
 
@@ -132,6 +132,22 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
   check:boundaries (client 9/browser chunk 15/static HTML 3)도 다시 실행해 통과했다.
 - Next.js UI/runtime dependency 변경은 없다. 실제 GitHub/Supabase 실행 결과는 적용 후 별도로 기록한다.
 
+## Hosted migration and public UI verification (2026-10-06)
+
+- Commit 7fe8256을 main에 push했고 GitHub의 Supabase Preview check가 completed/success가 됐다.
+- 실제 Data API: categories 200/9개, 기존 seed의 ID/name/parent 관계와 일치.
+- 실제 Data API: problems와 problem_versions 각각 200/3개, published/current version만 반환.
+- 익명 private package/profiles/attempts/attempt_messages/hint_events SELECT는 모두 401/42501로 거절.
+- localhost 공개 목록·published 상세 3개·login/signup은 200. 실제 DB problem title 표시를 확인했다.
+- review 및 Admin 6개 route는 비로그인 접근 시 login으로 307 redirect.
+- draft/needs_review/archived slug는 접근 불가 화면이며 비공개 title/scenario가 응답에 없다.
+  Next.js streamed notFound 응답은 HTTP 200일 수 있어 상태 코드와 렌더링 내용을 함께 검사했다.
+- 검사한 HTTP payload에서 reference answer, hint ladder, misconception fixture marker를 발견하지 못했다.
+- Firefox 1440px에서 실제 DB 문제 목록/필터/empty state/reset과 인터뷰를 확인하고 스크린샷을 직접 검토했다.
+  문제/채팅 panel은 각각 567px, 비로그인 입력은 disabled다. 500px에서도 가로 overflow가 없다.
+- 현재 사용자 계정 credential이 없어 signup/login/실제 소유자 저장·재개/admin 세션 검증은 수행하지 않았다.
+- 스크린샷과 로컬 SQL 검증 artifact: /tmp/tech-interview-ai-m2-sql-rJYfA7/.
+
 ## UI regression scope
 
 - src/app/globals.css는 시작 당시와 바이트 단위로 동일하다.
@@ -140,7 +156,7 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 - chat panel/composer/message/action 스타일은 유지하고 DB 상태/저장 호출/로그인 안내를 연결했다.
   실제 사용자 메시지로 혼동될 수 있는 기존 sample 표시만 runtime에서 제외했다.
 - reference review의 큰 panel 배치는 유지하되 비공개 정답 대신 저장된 대화/힌트와 제한 안내를 제공한다.
-- 실제 DB-backed 화면의 로그인별 렌더링은 credential 부재로 확인하지 못했다.
+- 실제 DB-backed 비로그인 화면을 이번에 확인했다. 로그인별 렌더링은 계정 설정/검증 후 확인해야 한다.
 - 시작 snapshot: /tmp/tech-interview-ai-m2-before-3hvdza4u/.
 - screenshot: /tmp/tech-interview-ai-m2-login.png, /tmp/tech-interview-ai-m2-signup.png,
   /tmp/tech-interview-ai-m2-problems.png. 실제 모바일/Safari/Chromium 검사는 하지 않았다.
