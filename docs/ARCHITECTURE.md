@@ -242,6 +242,12 @@ private/no-store이며 사용자별 조회를 전역 cache에 넣지 않는다. 
 
 ## Database와 RLS
 
+사용자가 활성화한 GitHub integration의 main push로 연결된 Supabase DB에 migration을 적용한다.
+runner가 transaction/history를 관리하며 적용된 migration은 수정하지 않는다. 기본 production sync에서
+seed.sql은 제외되므로 M2 초기 catalog를 별도 immutable data migration으로 기록했다.
+기존 row는 덮어쓰지 않는다. 앱 runtime에 DB 관리자 credential을 추가하지 않고 기존 publishable key와
+사용자 session 경계를 유지한다. 이는 웹서비스 hosting이나 M3 authoring/publishing 구현이 아니다.
+
 값이 변경될 가능성이 있는 status/type/role은 native enum 대신 text + CHECK를 사용한다.
 CHECK를 교체하는 migration으로 확장하고 TypeScript union과 맞춘다. category는 enum이 아니다.
 JSONB는 visualization, private rubric/ladder/examples, 향후 reasoning state처럼 중첩 계약에만 쓴다.

@@ -1,6 +1,6 @@
 -- Run after the migration, in a disposable/staging Supabase project's SQL editor
 -- as postgres. No extensions required. Synthetic users/data are always rolled back.
--- NOT executed during M2 because no Supabase credentials were available.
+-- Hosted execution and local PGlite results are recorded separately in docs/STATUS.md.
 begin;
 
 insert into auth.users(id, email, raw_user_meta_data) values

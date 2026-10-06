@@ -4,7 +4,8 @@ M2 integration code와 migration/seed가 준비되어 있다. 초기 구현 때�
 2026-10-06 사용자가 `.env.local`을 설정한 뒤 Supabase 읽기 전용 연결을 확인했다.
 Auth settings는 정상 응답하지만 categories/problems table은 PGRST205로 조회되지 않는다.
 **Migration/seed 적용과 실제 Auth/RLS/persistence 검증은 아직 완료되지 않았다.**
-현재 다음 작업은 아래 2번의 migration/seed 적용이다. global 설치는 필요 없다.
+사용자가 GitHub integration과 Deploy to production을 활성화했다. 현재 적용 경로는 아래 2번의
+GitHub migration이며, 실제 실행 결과는 STATUS에 별도로 기록한다. global 설치는 필요 없다.
 
 ## 1. Project와 환경 변수
 
@@ -37,21 +38,33 @@ legacy anon key를 사용하는 프로젝트라면 그 값을 위 PUBLISHABLE_KE
 
 ## 2. Migration 적용
 
-[Supabase SQL editor](https://supabase.com/docs/guides/database/overview)를 이용해 다음 파일 전체를
-순서대로 실행한다. 별도의 CLI 설치는 필요 없다.
+이 프로젝트는 사용자가 연결한 GitHub integration으로 migration을 적용한다.
 
-1. `supabase/migrations/20261005000100_m2_foundation.sql`
-2. `supabase/seed.sql`
+- Repository: `shy020501/tech-interview-ai`
+- Working directory: `.` (`supabase/`의 부모 경로)
+- 배포 기준 branch: `main`
+- Deploy to production: 사용자 활성화 확인
 
-migration은 한 transaction으로 table/constraint/trigger/grant/RLS/RPC를 만든다.
-**한 번만 적용**하고 적용 파일명과 결과를 기록한다. 동일 파일을 중복 실행하거나 db reset을 할 필요가 없다.
-향후 schema 변경은 새로운 migration 파일로 추가한다.
+`supabase/config.toml`의 project_id는 local 식별자다. 실제 hosted project는 GitHub integration에서
+선택하며 project credential을 repository에 넣지 않는다. Auth/API 설정을 변경하는 remotes override는 없다.
 
-선택적으로 psql을 이미 보유하고 있다면 안전하게 관리하는 DB connection 정보로
-`psql --set=ON_ERROR_STOP=1 --file=supabase/migrations/20261005000100_m2_foundation.sql`과
-`psql --set=ON_ERROR_STOP=1 --file=supabase/seed.sql`을 사용할 수 있다.
-프로젝트별 host/connection 설정은 [공식 연결 안내](https://supabase.com/docs/guides/database/connecting-to-postgres)를 따른다.
-비밀번호를 repository나 shell 명령 인자로 저장하지 않는다. 이 환경에서 psql 명령은 실행하지 않았다.
+다음 파일들이 순서대로 적용된다.
+
+1. `supabase/migrations/20261005000100_m2_foundation.sql`: 9개 table, constraint, trigger, grant, RLS, RPC.
+2. `supabase/migrations/20261006000100_m2_initial_catalog.sql`: 기존 M2 초기 category/problem/private package.
+
+Supabase migration runner가 각 파일의 transaction과 migration history를 관리한다. runner 내부에서
+transaction을 조기에 끝내지 않도록 migration 자체의 최상위 BEGIN/COMMIT은 사용하지 않는다.
+아직 적용되지 않은 foundation 파일을 최초 GitHub 실행 전에 이 방식으로 정리했다.
+
+GitHub의 Supabase check와 실제 DB 결과를 함께 확인한다. 연결 설정만으로 적용 완료라고 판단하지 않는다.
+이 경로에서는 SQL editor로 같은 schema 파일을 수동 실행하지 않는다. 수동 실행은 migration history와
+실제 schema를 어긋나게 할 수 있다. 이미 수동 적용했다면 reset/재실행 대신 trusted operator가
+실제 schema를 비교하고 CLI migration history repair 여부를 먼저 결정한다.
+
+이후 변경은 새로운 timestamp의 migration으로 추가한다. 적용된 파일은 수정하지 않는다.
+Supabase 기본 project DB의 migration 적용이며 Next.js 사이트 hosting/production deployment는 수행하지 않는다.
+동작 기준은 [공식 GitHub integration 안내](https://supabase.com/docs/guides/deployment/branching/github-integration)를 따른다.
 
 ## 3. Seed 내용
 
@@ -67,6 +80,11 @@ migration은 한 transaction으로 table/constraint/trigger/grant/RLS/RPC를 만
 `pnpm seed:generate`로 SQL을 재생성한다. seed 재실행은 빠진 row만 추가하며 이미 편집한 row는
 덮어쓰지 않는다. 기존 DB 콘텐츠 변경은 별도의 migration 또는 후속 관리 workflow에서 수행한다.
 `app_private` schema는 Data API exposed schema 목록에 추가하지 않는다.
+
+GitHub production sync는 `seed.sql`을 기본적으로 적용하지 않는다. 그래서 최초 snapshot
+`5448b4b`의 동일한 seed 내용을 고정된 `20261006000100_m2_initial_catalog.sql` data migration에
+보존했다. 이 파일은 `pnpm seed:generate`로 다시 생성하지 않는다. local/preview에서 seed.sql을
+추가 실행해도 같은 row는 건너뛰므로 중복되지 않는다. 새 사용자나 admin 계정을 자동 생성하지 않는다.
 
 ## 4. Authentication 설정과 email confirmation
 

@@ -1,6 +1,6 @@
 -- M2 only. Apply once to a Supabase project as its trusted migration owner.
 -- Application runtime uses a publishable key + the authenticated user's JWT.
-begin;
+-- The Supabase migration runner owns the transaction and migration history.
 
 create schema if not exists app_private;
 revoke all on schema app_private from public;
@@ -303,5 +303,3 @@ end;
 $$;
 revoke all on function public.start_interview(text), public.append_interview_turn(uuid, text, uuid), public.request_interview_hint(uuid), public.finish_interview(uuid) from public, anon;
 grant execute on function public.start_interview(text), public.append_interview_turn(uuid, text, uuid), public.request_interview_hint(uuid), public.finish_interview(uuid) to authenticated;
-
-commit;

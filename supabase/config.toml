@@ -1,0 +1,12 @@
+# Repository-local identifier; the GitHub integration selects the hosted project.
+# No remote project reference or credentials belong in this file.
+project_id = "tech-interview-ai"
+
+[db.migrations]
+schema_paths = []
+
+# Local/preview convenience only. The base project's initial catalog is applied
+# by 20261006000100_m2_initial_catalog.sql because GitHub production sync skips seeds.
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]

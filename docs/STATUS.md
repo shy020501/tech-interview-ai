@@ -116,6 +116,22 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 - Supabase 읽기 전용 연결 이후의 상태를 README/ARCHITECTURE에 반영했다. UI/기능 변경은 없다.
 - migration/seed 실행, Auth/RLS/persistence의 live 검증과 production deployment는 이번 GitHub 인계에 포함되지 않는다.
 
+## GitHub migration preparation (2026-10-06)
+
+- 사용자가 GitHub–Supabase 연결과 Deploy to production 활성화를 확인했다.
+- supabase/config.toml을 추가하고 기존 M2 seed snapshot을 initial catalog data migration으로 기록했다.
+- 최초 적용 전 foundation의 최상위 transaction 제어를 제거하여 Supabase runner의 transaction/history를 사용한다.
+- Docker daemon 접근 권한이 없어 사용하지 않았다. /tmp의 PGlite 0.5.8에서 최소 auth.users/auth.uid
+  stub과 실제 anon/authenticated DB role을 구성하여 두 migration을 각각 transaction으로 실행했다.
+- 로컬 SQL 실행 성공: category 9/problem 6/private package 3, RLS table 9.
+- seed 재실행이 기존 편집을 덮어쓰지 않는지, anon에게 published 문제/version 3개만 보이는지 확인했다.
+- supabase/tests/rls.sql의 user A/user B/admin 격리, role 승격 차단, RPC/힌트 재시도, version 고정,
+  완료 후 변경 차단 검사가 로컬에서 통과했고 synthetic row는 rollback됐다.
+- PGlite는 로컬 단일 연결 검증이다. 실제 Supabase Auth, hosted RLS, 동시성 검증의 대체가 아니다.
+- TOML 구문 및 seed/data migration 내용 일치를 확인했다. lint/typecheck/test (11개)/build와
+  check:boundaries (client 9/browser chunk 15/static HTML 3)도 다시 실행해 통과했다.
+- Next.js UI/runtime dependency 변경은 없다. 실제 GitHub/Supabase 실행 결과는 적용 후 별도로 기록한다.
+
 ## UI regression scope
 
 - src/app/globals.css는 시작 당시와 바이트 단위로 동일하다.
