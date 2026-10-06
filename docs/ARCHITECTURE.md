@@ -244,7 +244,8 @@ private/no-store이며 사용자별 조회를 전역 cache에 넣지 않는다. 
 ## Database와 RLS
 
 사용자가 활성화한 GitHub integration의 main push로 연결된 Supabase DB에 migration을 적용한다.
-runner가 transaction/history를 관리하며 적용된 migration은 수정하지 않는다. 기본 production sync에서
+runner가 migration history를 관리하며 적용된 migration은 수정하지 않는다. M3는 단일 DO statement로
+변경 전체의 transaction을 보장한다(이 runner는 파일 전체 transaction을 제공하지 않음). 기본 production sync에서
 seed.sql은 제외되므로 M2 초기 catalog를 별도 immutable data migration으로 기록했다.
 기존 row는 덮어쓰지 않는다. 앱 runtime에 DB 관리자 credential을 추가하지 않고 기존 publishable key와
 사용자 session 경계를 유지한다. 웹서비스 hosting/배포 설정은 변경하지 않는다. M3는 별도 incremental migration으로 작성/발행 RPC를 추가한다.

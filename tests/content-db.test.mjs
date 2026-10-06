@@ -28,7 +28,19 @@ test('M3 PostgreSQL lifecycle, access boundaries and preserved M2 data', async (
     const baseline=await q('select id,problem_version_id,status from public.attempts where id=$1',[before]);
     await q(`insert into public.problem_versions(id,problem_id,version_number,title,short_description,scenario,question,question_type,difficulty)
       values('m3-test-preexisting-draft','problem-drone-dynamics',2,'Preexisting M2 draft','','','','applied','intermediate')`);
-    for(const file of migrations.slice(2)) { await db.exec('begin'); await db.exec(await readFile('supabase/migrations/'+file,'utf8')); await db.exec('commit'); }
+    const m3 = await readFile('supabase/migrations/'+migrations[2],'utf8');
+    await t.test('migration failure rolls back all changes without an outer transaction',async()=>{
+      const failing=m3.replace('end;\n$m3_migration$;',"raise exception 'Intentional migration rollback test';\nend;\n$m3_migration$;");
+      assert.notEqual(failing,m3);
+      await assert.rejects(db.query(failing),/Intentional migration rollback test/);
+      assert.equal(await scalar("select to_regclass('public.sources')"),null);
+      assert.equal(await scalar("select count(*)::int from information_schema.columns where table_name='problem_versions' and column_name='status'"),0);
+      assert.equal(await scalar("select has_table_privilege('authenticated','public.problem_versions','UPDATE')"),true);
+      assert.deepEqual(await q('select id,problem_version_id,status from public.attempts where id=$1',[before]),baseline);
+    });
+    // Hosted runner does not wrap the migration in a transaction. One prepared
+    // statement also catches accidental top-level commands outside the atomic DO.
+    for(const file of migrations.slice(2)) await db.query(await readFile('supabase/migrations/'+file,'utf8'));
     await t.test('incremental migration preserves existing attempts and public catalog',async()=>{
       assert.deepEqual(await q('select id,problem_version_id,status from public.attempts where id=$1',[before]),baseline);
       assert.equal(await scalar("select status from public.problem_versions where id='m3-test-preexisting-draft'"),'draft');

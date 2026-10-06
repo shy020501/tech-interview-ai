@@ -53,9 +53,9 @@ legacy anon key를 사용하는 프로젝트라면 그 값을 위 PUBLISHABLE_KE
 M3는 새 table/column을 추가하고 기존 version 분류를 backfill한다. 문제 본문/평가 package/attempt를 삭제하거나 초기화하지 않는다.
 발행본/기존 attempt는 보존하고 authenticated table mutation을 검증된 RPC로 제한한다. 적용 전 로컬 PostgreSQL 검사를 실행한다.
 
-Supabase migration runner가 각 파일의 transaction과 migration history를 관리한다. runner 내부에서
-transaction을 조기에 끝내지 않도록 migration 자체의 최상위 BEGIN/COMMIT은 사용하지 않는다.
-아직 적용되지 않은 foundation 파일을 최초 GitHub 실행 전에 이 방식으로 정리했다.
+Supabase migration runner가 migration history를 관리한다. 이 연결에서는 파일 전체가 하나의 transaction으로
+묶인다고 가정할 수 없다. M3는 단일 `DO` statement 안에서 모든 변경을 실행하여 lock/backfill/grant 변경이
+원자적으로 적용되도록 한다. 최상위 BEGIN/COMMIT은 사용하지 않는다. 이미 적용된 M2 파일은 변경하지 않는다.
 
 GitHub의 Supabase check와 실제 DB 결과를 함께 확인한다. 연결 설정만으로 적용 완료라고 판단하지 않는다.
 이 경로에서는 SQL editor로 같은 schema 파일을 수동 실행하지 않는다. 수동 실행은 migration history와

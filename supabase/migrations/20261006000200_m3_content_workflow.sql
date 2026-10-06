@@ -1,5 +1,8 @@
 -- M3: incremental manual authoring. No reset, no external services, no elevated app key.
--- The migration runner owns this transaction. Existing identities/attempts remain intact.
+-- One DO statement is atomic even when the hosted runner executes statements separately.
+-- Do not use top-level BEGIN/COMMIT or rely on an outer runner transaction.
+do $m3_migration$
+begin
 lock table public.problems, public.problem_versions, public.problem_evaluation_packages in access exclusive mode;
 drop trigger version_frozen on public.problem_versions;
 alter table public.problems add column created_by uuid references auth.users(id) on delete set null;
@@ -477,3 +480,5 @@ revoke all on all functions in schema app_private from public,anon,authenticated
 grant execute on function app_private.is_admin() to anon,authenticated;
 revoke all on function public.admin_save_source(uuid,jsonb),public.admin_save_candidate(uuid,jsonb),public.admin_save_category(text,jsonb),public.admin_delete_category(text),public.admin_create_problem(text,text),public.admin_convert_candidate(uuid,text),public.admin_save_problem_version(text,integer,jsonb,jsonb,jsonb,text),public.admin_create_version(text),public.admin_publish_version(text,integer),public.admin_archive_problem(text),public.request_interview_hint(uuid,uuid),public.get_attempt_debrief(uuid) from public,anon;
 grant execute on function public.admin_save_source(uuid,jsonb),public.admin_save_candidate(uuid,jsonb),public.admin_save_category(text,jsonb),public.admin_delete_category(text),public.admin_create_problem(text,text),public.admin_convert_candidate(uuid,text),public.admin_save_problem_version(text,integer,jsonb,jsonb,jsonb,text),public.admin_create_version(text),public.admin_publish_version(text,integer),public.admin_archive_problem(text),public.request_interview_hint(uuid,uuid),public.get_attempt_debrief(uuid) to authenticated;
+end;
+$m3_migration$;
