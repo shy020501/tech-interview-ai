@@ -2,15 +2,16 @@
 
 Current milestone: **M2**
 
-Status: **Database migrations applied; hosted account/session integration verification pending**
+Status: **Hosted signup and persistence confirmed by user; admin/isolation verification pending**
 
 Last updated: 2026-10-06 (Asia/Seoul)
 
 2026-10-06 사용자 승인된 GitHub–Supabase integration을 통해 foundation과 initial catalog
 migration을 적용했다. commit 7fe8256의 Supabase check가 성공했고 실제 Data API에서
 category 9개와 published 문제/version 3개를 확인했다. 익명 private/package/사용자 기록 조회는
-거절된다. 실제 계정 signup/login, admin session과 사용자별 persistence 검증은 아직 남아 있다.
-M3는 미착수다.
+거절된다. 이후 사용자가 가입 메일 수신과 로그인된 상태에서의 인터뷰 시작, 메시지/힌트 저장,
+새로고침 후 복원을 확인했다. 이는 사용자 보고이며 자동화된 계정 검증과 구분한다.
+admin session, 사용자 간 데이터 격리 등 아래 미검증 항목은 남아 있으며 M3는 미착수다.
 
 ## Completed — repository implementation
 
@@ -30,11 +31,19 @@ M3는 미착수다.
 - Supabase 미설정 시 명확한 unavailable 상태; 저장된 것처럼 보이는 mock DB fallback 없음.
 - 설정/최초 admin/RLS 검증 문서 및 실행 준비된 rollback SQL 검사 작성.
 
+## Confirmed by user against hosted Supabase (2026-10-06)
+
+- 가입 후 Supabase confirmation email 수신 및 정상 진행을 확인했다.
+- 로그인된 상태에서 대표 드론 문제의 Start interview, 메시지 전송, Hint 요청을 확인했다.
+- 새로고침 후 대화와 사용한 힌트가 복원되는 것을 확인했다.
+- 사용자의 브라우저 수동 확인 결과다. Codex가 계정 credential을 받아 재현하거나 DB row를 직접 검사한 것은 아니다.
+
 ## Not yet verified against hosted Supabase
 
-- 실제 signup, confirmation email, login/logout 및 session refresh
+- Sign out 후 재로그인, 만료된 session의 자동 refresh
+- Finish interview 후 본인의 completed review 조회
+- 로그인된 일반 계정의 Admin route 차단 및 private package 직접 조회 차단
 - 실제 admin 계정의 DB category/problem/private package 조회
-- DB attempt/message/hint 저장 및 실제 reload/resume
 - 두 일반 계정 사이의 데이터 격리, 일반 user의 role 변경 차단, 실제 RLS/column grant 실행 결과
 - hosted DB에서 supabase/tests/rls.sql 실행과 로그인된 인터뷰 payload 검사
 
@@ -148,6 +157,13 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 - 현재 사용자 계정 credential이 없어 signup/login/실제 소유자 저장·재개/admin 세션 검증은 수행하지 않았다.
 - 스크린샷과 로컬 SQL 검증 artifact: /tmp/tech-interview-ai-m2-sql-rJYfA7/.
 
+## User confirmation follow-up (2026-10-06)
+
+- 사용자가 가입 메일 수신 문제 해결과 위 인터뷰 저장/복원 흐름을 확인했다.
+- STATUS, README, SUPABASE_SETUP, ARCHITECTURE의 현재 검증 상태를 맞췄다.
+- 문서만 변경했다. `git diff --check`로 변경 형식을 검사하며 lint/typecheck/test/build는 재실행하지 않는다.
+- Auth 설정, DB 권한, UI, 기존 서버를 변경하지 않았고 M3를 시작하지 않았다.
+
 ## UI regression scope
 
 - src/app/globals.css는 시작 당시와 바이트 단위로 동일하다.
@@ -165,7 +181,7 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 
 **M3 — Admin content lifecycle and problem package management**
 
-- 먼저 실제 Supabase setup/Auth/RLS/persistence 검증을 완료한다.
+- 먼저 남은 hosted Auth/admin/RLS/review 검증을 완료한다.
 - DB-backed category/problem version 편집과 private package 검수 흐름을 설계한다.
 - draft → review → human-approved publish와 변경 이력을 구현한다.
 - 현재 source/candidate demo와 실제 관리 workflow의 경계를 정리한다.

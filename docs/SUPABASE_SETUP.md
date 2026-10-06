@@ -2,8 +2,9 @@
 
 2026-10-06 사용자 승인된 GitHub integration으로 M2 schema와 initial catalog migration을 적용했다.
 Supabase check 성공과 실제 공개 category 9개/published 문제 3개 조회를 확인했다.
-익명 private 데이터 접근은 거절되며, **실제 계정의 Auth/admin/persistence 검증은 아직 남아 있다.**
-다음 사용자 작업은 아래 4번의 Auth URL 설정 확인과 5번의 계정 생성이다.
+익명 private 데이터 접근은 거절된다. 이후 사용자가 가입 메일 수신과 로그인된 상태의 인터뷰 시작,
+메시지/힌트 저장 및 새로고침 복원을 확인했다. **Admin/사용자 간 격리 등 남은 검증은 STATUS를 따른다.**
+현재 프로젝트는 일반 계정의 Admin 접근 차단 확인 후 아래 5번의 최초 Admin 지정과 6–7번 검증을 이어간다.
 기존 migration을 SQL editor에서 다시 실행할 필요가 없다. 실제 검증 결과는 STATUS에 기록한다.
 
 ## 1. Project와 환경 변수
@@ -100,7 +101,8 @@ GitHub production sync는 `seed.sql`을 기본적으로 적용하지 않는다. 
 - 기본 confirmation 링크 + PKCE callback은 가입을 시작한 브라우저의 verifier cookie를 필요로 한다.
   링크를 같은 브라우저에서 열고, 성공하면 세션을 저장한 뒤 원래의 허용된 내부 경로로 이동한다.
 - confirmation을 끈 개발 프로젝트는 signup 성공 후 바로 로그인 상태가 될 수 있다.
-- 메일 발송 정책/제한/SMTP 설정은 프로젝트에서 확인한다. 이번 작업에서 메일 발송은 테스트하지 않았다.
+- 메일 발송 정책/제한/SMTP 설정은 프로젝트에서 확인한다. 2026-10-06 사용자가 가입 메일 수신을 확인했다.
+  자동 메일 발송 테스트나 SMTP 설정 변경은 수행하지 않았다.
 
 다른 브라우저에서의 confirmation이 필요하면 제공된 `/auth/confirm` route와 email template을 사용할 수 있다.
 Confirm signup template의 링크를 다음 형태로 설정한다. 이는 프로젝트 소유자가 선택적으로 적용한다.
