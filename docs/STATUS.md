@@ -162,6 +162,8 @@ new authenticated end-to-end actions in your own browser; confirmed deletion is 
 
 - All seven Evaluation package subsections (reference answer, rubric, alternatives, misconceptions,
   hints, completion criteria and examples) start expanded and can be toggled independently.
+- Light 1px separators remain visible between subsections when expanded, collapsed or mixed.
+  Existing section spacing is retained; focused Firefox checks and desktop/mobile screenshots confirmed this.
 - Native details/summary controls support pointer and keyboard interaction, including read-only versions.
   Fields stay mounted: collapsing preserves unsaved text, JSON validation state and draft save behavior.
   Browser form validation reopens invalid sections before focusing the field; toggles do not mark a draft dirty.

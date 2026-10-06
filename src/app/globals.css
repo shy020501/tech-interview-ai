@@ -149,6 +149,7 @@ td { padding: 18px 17px; border-top: 1px solid var(--line); vertical-align: top;
 .editor-action-row input, .editor-action-row select, .editor-action-row .button { min-height: 44px; }
 .editor-action-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .private-panel { border-top: 3px solid #b5bfd2; }
+.evaluation-section + .evaluation-section { border-top: 1px solid var(--line); padding-top: 13px; }
 .evaluation-section > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 36px; cursor: pointer; list-style: none; border-radius: 4px; }
 .evaluation-section > summary::-webkit-details-marker { display: none; }
 .evaluation-section > summary:hover { color: var(--accent); }
