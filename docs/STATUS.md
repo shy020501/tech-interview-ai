@@ -127,6 +127,23 @@ Manual follow-up: refresh the Admin pages, save a source/candidate and confirm t
 through Edit draft, then Close editor. Delete only disposable entries without references/interviews to check the
 new authenticated end-to-end actions in your own browser; confirmed deletion is permanent.
 
+## M3 follow-up — consistent save-and-close and action alignment (2026-10-06)
+
+- Successful **Save draft** returns to the problem list with confirmation; **Edit draft** reopens the saved
+  version for continued editing, preview or publication. Validation alone leaves the editor open.
+- Category add/edit now opens explicitly and closes after a successful save, matching Source/Candidate/Draft.
+  All save failures retain entered content. New-problem creation closes/resets its creation form before
+  opening the new draft. The convention is recorded in AGENTS and the content workflow.
+- Draft/review selects share a column; save/validate/publish controls align with their selects at 44px height.
+  Candidate review/edit/reject/delete buttons share a wrapping row, equal heights and 12px spacing.
+  CSS changes are scoped to Admin action rows; existing User panels/navigation remain intact.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries`,
+  and `git diff --check`: PASS.
+- Actual components in an isolated Firefox fixture passed save success/failure, reopen, category add/edit,
+  new-problem form reset, desktop geometry and 500px no-overflow checks. Screenshots inspected.
+  Server responses were simulated; this was not a hosted authenticated mutation test.
+- No database schema, dependency, authentication or milestone changes. No hosted data was modified.
+
 ## Still mock / not implemented
 
 - Interview feedback and progress remain explicitly scripted; no personal correctness/rubric judgment.

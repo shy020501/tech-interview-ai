@@ -18,6 +18,8 @@
 - DB 변경은 migration/seed로 기록한다. 일반 runtime은 publishable key와 사용자 session만 사용한다. role 승격은 trusted SQL로만 수행하며 사용자 metadata를 admin 근거로 삼지 않는다.
 - Supabase credential이 없으면 실제 연결을 검증했다고 주장하지 않는다.
 
+- Admin의 Source/Candidate/Problem draft/Category 편집 폼은 저장 성공 후 닫는다. 저장 실패 시에는 입력값과 오류를 유지한다. 저장과 별개인 검증/발행 동작은 명시적으로 구분한다.
+
 ## Secrets와 외부 서비스
 
 - 실제 API key, secret, password를 source code, 문서, fixture, commit, 로그에 넣지 않는다.

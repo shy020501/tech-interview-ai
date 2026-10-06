@@ -55,6 +55,10 @@ they do not run a model or claim a personal assessment.
 **Save draft** accepts incomplete content. Invalid types, missing references, duplicate IDs, rubric cycles
 and negative weights are rejected. **Needs Review** is available as a draft status. The revision number
 prevents two editors from silently overwriting a newer saved draft. Reload if a stale-save error appears.
+A successful save closes the editor and returns to the problem list with **Draft saved** feedback. Select
+**Edit draft** again to continue, preview or validate/publish the saved version. Failed saves keep the editor
+and input visible. The new-problem creation form also closes/resets after successful creation, then opens
+the new draft for its next editing step.
 
 The editor displays **Saved / Unsaved changes** and warns on browser close/reload. There is no custom
 in-app navigation blocker: save before choosing a different problem/version. Invalid JSON must be corrected
@@ -69,7 +73,7 @@ Drafts never become visible through `/problems/[slug]` merely because an admin p
 
 ## 5. Validate and publish
 
-Choose **Validate saved draft**. Blocking errors include missing scenario/question, primary category,
+Reopen the saved version with **Edit draft**, then choose **Validate saved draft**. Blocking errors include missing scenario/question, primary category,
 competency, reference answer, meaningful rubric, completion criteria or reviewed hint. Rubric integrity,
 all references and structured data are validated again. Missing alternatives/examples produce warnings.
 
@@ -114,7 +118,9 @@ deleting the problem currently being edited returns to the list.
 ## 7. Categories
 
 `/admin/categories` keeps the tree and adds a management form. Create categories, edit display names and
-slugs/descriptions, move parents and set sort order. Stable IDs do not change. The DB blocks self-parenting
+slugs/descriptions, move parents and set sort order. **Add category** or selecting an existing category opens
+the form. **Save category** closes it only on success; errors preserve the form and inputs. **Cancel** closes
+without saving. Stable IDs do not change. The DB blocks self-parenting
 and descendant cycles; there is no fixed depth. Deletion is blocked when a child, version, problem, source
 suggestion or candidate references the category. **Delete unused category** only removes unused leaves.
 

@@ -352,7 +352,9 @@ Source/candidate/profile/private-package SELECT is admin/owner restricted as app
 
 ## Admin editor lifecycle and deletion
 
-Source/candidate forms close only after successful saves and preserve input on validation/network failure.
+Source/candidate/problem-draft/category forms close only after successful saves and preserve input on
+validation/network failure. Draft save returns to the library; explicit Edit draft reopens the saved version
+for continued editing or validation/publication. The new-problem creation form closes before opening its draft.
 Problem detail/package data is fetched only for an explicitly selected problem query; the library does not
 automatically select its first row. Close editor confirms discarding unsaved changes.
 
