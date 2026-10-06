@@ -1,0 +1,684 @@
+{
+  "note": "One-time seed fixtures preserved from the current M1 UI. Never import this file into application runtime.",
+  "categories": [
+    {
+      "id": "ai",
+      "slug": "ai",
+      "name": "AI",
+      "parentId": null,
+      "description": "Intelligence, learning, and the systems around them."
+    },
+    {
+      "id": "physical-ai",
+      "slug": "physical-ai",
+      "name": "Physical AI",
+      "parentId": "ai",
+      "description": "Learning and decision-making in the physical world."
+    },
+    {
+      "id": "sim-to-real",
+      "slug": "sim-to-real",
+      "name": "Sim-to-Real",
+      "parentId": "physical-ai"
+    },
+    {
+      "id": "robot-learning",
+      "slug": "robot-learning",
+      "name": "Robot Learning",
+      "parentId": "physical-ai"
+    },
+    {
+      "id": "computer-vision",
+      "slug": "computer-vision",
+      "name": "Computer Vision",
+      "parentId": "ai"
+    },
+    {
+      "id": "representation-learning",
+      "slug": "representation-learning",
+      "name": "Representation Learning",
+      "parentId": "computer-vision"
+    },
+    {
+      "id": "3d-vision",
+      "slug": "3d-vision",
+      "name": "3D Vision",
+      "parentId": "computer-vision"
+    },
+    {
+      "id": "llm",
+      "slug": "llm",
+      "name": "LLM",
+      "parentId": "ai"
+    },
+    {
+      "id": "security",
+      "slug": "security",
+      "name": "Security",
+      "parentId": null,
+      "description": "An open branch for future content."
+    }
+  ],
+  "problems": [
+    {
+      "id": "problem-drone-dynamics",
+      "versionId": "pv-drone-1",
+      "version": 1,
+      "slug": "drone-dynamics-adaptation",
+      "title": "Drone Dynamics Adaptation",
+      "shortDescription": "A controller succeeds in simulation and fails in flight. Design a learning signal for an adaptive representation.",
+      "scenario": "A drone controller performs well in simulation but becomes unstable after deployment. Motor strength, payload, mass, and aerodynamic characteristics differ from the simulator. An encoder observes a recent window of states and actions, produces a latent vector z, and passes it to the controller alongside the current state. You can change the encoder's training objective.",
+      "question": "How should the representation be trained so that the latent captures information useful for adapting to the drone's real dynamics? Explain your learning signal, what information it encourages z to retain, and how you would check that it works.",
+      "assumptions": [
+        "State estimates and executed actions are available; true physical parameters are not available on the real drone.",
+        "Simulation can generate trajectories under a range of physical parameters. Dynamics are approximately constant within a short history window.",
+        "The controller can consume the latent vector. Sensor latency and hardware faults have been ruled out for this scenario."
+      ],
+      "visualization": {
+        "kind": "flow",
+        "title": "The adaptation loop",
+        "caption": "The history provides context; the current state also enters the controller. The encoder's learning signal is your design decision.",
+        "nodes": [
+          {
+            "id": "history",
+            "label": "Recent history",
+            "detail": "states + actions"
+          },
+          {
+            "id": "encoder",
+            "label": "Encoder",
+            "detail": "history → context"
+          },
+          {
+            "id": "latent",
+            "label": "Latent z",
+            "detail": "compact context"
+          },
+          {
+            "id": "controller",
+            "label": "Controller",
+            "detail": "+ current state"
+          },
+          {
+            "id": "action",
+            "label": "Action",
+            "detail": "motor commands"
+          }
+        ]
+      },
+      "categoryIds": [
+        "sim-to-real",
+        "representation-learning"
+      ],
+      "primaryCategoryId": "sim-to-real",
+      "questionType": "applied",
+      "competencyIds": [
+        "objective_design",
+        "experiment_design"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "Adaptation",
+        "Control",
+        "Representation"
+      ],
+      "status": "published",
+      "publishedAt": "2026-10-01T09:00:00Z",
+      "origin": "original_mock"
+    },
+    {
+      "id": "problem-camera-shift",
+      "versionId": "pv-camera-1",
+      "version": 1,
+      "slug": "camera-shift-diagnosis",
+      "title": "When a New Camera Changes Everything",
+      "shortDescription": "Accuracy drops after a camera replacement. Separate a model failure from a measurement failure.",
+      "scenario": "A visual defect detector performs well on its validation set. After the factory replaces a camera, false positives rise sharply on one production line. Aggregate dashboards report similar image brightness, and the manufacturing process has not changed.",
+      "question": "How would you diagnose the failure and choose the next experiment before retraining the model? State your hypotheses and the evidence that would distinguish them.",
+      "assumptions": [
+        "You can collect paired images of the same items with both cameras.",
+        "A small, independently inspected sample of defects and non-defects is available.",
+        "The decision threshold and model weights have not changed."
+      ],
+      "visualization": null,
+      "categoryIds": [
+        "computer-vision"
+      ],
+      "primaryCategoryId": "computer-vision",
+      "questionType": "applied",
+      "competencyIds": [
+        "failure_diagnosis",
+        "experiment_design"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "Distribution Shift",
+        "Diagnostics"
+      ],
+      "status": "published",
+      "publishedAt": "2026-10-02T09:00:00Z",
+      "origin": "original_mock"
+    },
+    {
+      "id": "problem-representation",
+      "versionId": "pv-representation-1",
+      "version": 1,
+      "slug": "useful-representations",
+      "title": "What Makes a Representation Useful?",
+      "shortDescription": "Explain why a compact encoding can still discard exactly the information a task needs.",
+      "scenario": "Two encoders compress the same images into vectors of identical size. One gives much better performance on a downstream object recognition task, even though both reconstruct the input images reasonably well.",
+      "question": "What does it mean for a representation to be useful for a task? Explain why vector size and reconstruction quality alone are insufficient evidence.",
+      "assumptions": [
+        "The downstream task and its evaluation set are fixed.",
+        "Both encoders have access to the same training images."
+      ],
+      "visualization": null,
+      "categoryIds": [
+        "representation-learning"
+      ],
+      "primaryCategoryId": "representation-learning",
+      "questionType": "fundamental",
+      "competencyIds": [
+        "objective_design"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "Representation",
+        "Learning Objectives"
+      ],
+      "status": "published",
+      "publishedAt": "2026-10-03T09:00:00Z",
+      "origin": "original_mock"
+    },
+    {
+      "id": "problem-payload",
+      "versionId": "pv-payload-2",
+      "version": 2,
+      "slug": "unknown-robot-payload",
+      "title": "Adapting to an Unknown Payload",
+      "shortDescription": "Design an experiment that separates online adaptation from memorizing a payload label.",
+      "scenario": "A robot arm must lift unseen payloads. An adaptation module observes recent joint states and motor commands before changing the control policy.",
+      "question": "Which experiment would establish that the module adapts to dynamics rather than memorizing training payloads?",
+      "assumptions": [
+        "Payload mass and shape can vary independently."
+      ],
+      "visualization": null,
+      "categoryIds": [
+        "robot-learning",
+        "sim-to-real"
+      ],
+      "primaryCategoryId": "robot-learning",
+      "questionType": "applied",
+      "competencyIds": [
+        "experiment_design"
+      ],
+      "difficulty": "intermediate",
+      "tags": [
+        "Robotics",
+        "Generalization"
+      ],
+      "status": "needs_review",
+      "publishedAt": null,
+      "origin": "original_mock"
+    },
+    {
+      "id": "problem-depth",
+      "versionId": "pv-depth-1",
+      "version": 1,
+      "slug": "depth-estimation-in-fog",
+      "title": "Depth Estimation in Fog",
+      "shortDescription": "Choose a diagnostic strategy for a depth model under degraded visibility.",
+      "scenario": "A depth estimator becomes overconfident during fog, while its aggregate daytime benchmark remains strong.",
+      "question": "How would you separate uncertainty calibration from prediction error and decide what to change?",
+      "assumptions": [
+        "A limited set of reference depth measurements is available."
+      ],
+      "visualization": null,
+      "categoryIds": [
+        "3d-vision"
+      ],
+      "primaryCategoryId": "3d-vision",
+      "questionType": "applied",
+      "competencyIds": [
+        "failure_diagnosis",
+        "tradeoff"
+      ],
+      "difficulty": "advanced",
+      "tags": [
+        "Depth",
+        "Uncertainty"
+      ],
+      "status": "draft",
+      "publishedAt": null,
+      "origin": "original_mock"
+    },
+    {
+      "id": "problem-augmentation",
+      "versionId": "pv-augmentation-1",
+      "version": 1,
+      "slug": "augmentation-assumptions",
+      "title": "The Assumptions Behind Augmentation",
+      "shortDescription": "Explain when a transformation should preserve a label.",
+      "scenario": "A training pipeline applies horizontal flips to every image, including tasks that distinguish left from right.",
+      "question": "What assumption does this augmentation make, and when does it fail?",
+      "assumptions": [
+        "Task labels may depend on orientation."
+      ],
+      "visualization": null,
+      "categoryIds": [
+        "computer-vision"
+      ],
+      "primaryCategoryId": "computer-vision",
+      "questionType": "fundamental",
+      "competencyIds": [
+        "objective_design"
+      ],
+      "difficulty": "beginner",
+      "tags": [
+        "Augmentation"
+      ],
+      "status": "archived",
+      "publishedAt": null,
+      "origin": "original_mock"
+    }
+  ],
+  "evaluationPackages": [
+    {
+      "problemVersionId": "pv-drone-1",
+      "referenceAnswer": "Train the history encoder jointly with an action-conditioned dynamics predictor. Given the current state, action, and latent z inferred only from earlier history, predict the next state or a short future trajectory. Minimize a suitable state-transition prediction loss across diverse simulated dynamics. Different masses, motor strengths, and drag change the effect of the same action, so this objective creates pressure for z to retain information about those effects. Keep the target outside the encoder's input window to avoid leakage, and compare against predictors that ignore or shuffle z to check for shortcuts. A good prediction loss alone does not establish control usefulness: evaluate closed-loop adaptation on held-out physical parameter combinations, with a no-adaptation baseline. z need not uniquely identify every physical parameter; it must preserve task-relevant distinctions that the history makes identifiable.",
+      "reasoningRubric": [
+        {
+          "id": "drone_dynamics",
+          "label": "Identify the dynamics gap",
+          "description": "Connect deployment failure to changes in action-to-state transitions.",
+          "weight": 1,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Explains how a changed payload, motor, or drag changes a state transition under the same action."
+        },
+        {
+          "id": "drone_signal",
+          "label": "Justify a learning signal",
+          "description": "Propose an objective whose solution benefits from dynamics information.",
+          "weight": 3,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Explains conditional transition prediction, control-relevant identification, or another grounded objective and why z is needed.",
+          "notes": "Do not require the words forward model. A task-driven objective with a valid information argument can satisfy this node."
+        },
+        {
+          "id": "drone_shortcuts",
+          "label": "Address identifiability and shortcuts",
+          "description": "Distinguish a useful context representation from a reconstruction shortcut.",
+          "weight": 2,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Mentions sufficient excitation/history, target leakage, variation in dynamics, or a test showing z matters."
+        },
+        {
+          "id": "drone_validation",
+          "label": "Validate adaptation",
+          "description": "Test downstream utility on dynamics not seen during training.",
+          "weight": 2,
+          "prerequisiteNodeIds": [
+            "drone_signal"
+          ],
+          "sufficientEvidenceDescription": "Proposes held-out dynamics and a controlled comparison of adaptation enabled versus disabled."
+        }
+      ],
+      "acceptableAlternativeApproaches": [
+        {
+          "id": "drone_task_driven",
+          "description": "Train the context encoder through a control objective across randomized dynamics, then show by ablation that history-dependent adaptation improves held-out control performance.",
+          "rubricNodeIds": [
+            "drone_signal",
+            "drone_validation"
+          ]
+        },
+        {
+          "id": "drone_privileged_teacher",
+          "description": "Learn a privileged dynamics embedding in simulation and distill it into a history encoder, checking that the embedding captures control-relevant variation and transfers to unseen dynamics.",
+          "rubricNodeIds": [
+            "drone_signal",
+            "drone_shortcuts"
+          ]
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "drone_reconstruct_only",
+          "title": "Reconstruction guarantees dynamics",
+          "description": "Reconstructing the current observation can preserve appearance while ignoring how actions change state.",
+          "relatedRubricNodeIds": [
+            "drone_signal"
+          ],
+          "detectionNotes": "Flag only when reconstruction alone is claimed to guarantee dynamics; do not reject auxiliary reconstruction losses."
+        },
+        {
+          "id": "drone_parameter_identity",
+          "title": "Every physical parameter must be recovered",
+          "description": "Task-relevant dynamics may be sufficient even when individual parameters are not identifiable.",
+          "relatedRubricNodeIds": [
+            "drone_shortcuts"
+          ]
+        }
+      ],
+      "hintLadder": [
+        {
+          "id": "hint-drone-1",
+          "targetRubricNodeId": "drone_signal",
+          "level": 1,
+          "text": "Think about what changes after the same state and action are applied under different physical dynamics."
+        },
+        {
+          "id": "hint-drone-2",
+          "targetRubricNodeId": "drone_signal",
+          "level": 2,
+          "text": "What could you ask a model to predict that depends on both the chosen action and the dynamics?"
+        },
+        {
+          "id": "hint-drone-3",
+          "targetRubricNodeId": "drone_validation",
+          "level": 3,
+          "text": "Compare a predictor using z with one that ignores it, then test the controller on held-out dynamics."
+        }
+      ],
+      "completionCriteria": {
+        "requiredNodeIds": [
+          "drone_dynamics",
+          "drone_signal"
+        ],
+        "alternativeNodeGroups": [
+          [
+            "drone_shortcuts"
+          ],
+          [
+            "drone_validation"
+          ]
+        ],
+        "description": "Require a justified dynamics-relevant signal and at least one defensible safeguard or validation argument. Accept multiple valid routes through the rubric."
+      },
+      "evaluationExamples": [
+        {
+          "id": "example-drone-reconstruction",
+          "response": "Maybe the encoder should reconstruct the current observation.",
+          "expectedResult": {
+            "rubricAssessments": [
+              {
+                "rubricNodeId": "drone_dynamics",
+                "status": "unseen",
+                "evidence": []
+              },
+              {
+                "rubricNodeId": "drone_signal",
+                "status": "uncertain",
+                "evidence": [
+                  {
+                    "messageId": "example-message-1",
+                    "quote": "reconstruct the current observation"
+                  }
+                ],
+                "explanation": "Ask whether reconstruction is the only objective before assuming a misconception."
+              }
+            ],
+            "detectedMisconceptions": [],
+            "contradictions": [],
+            "needsEscalation": false,
+            "escalationReason": null,
+            "feedbackCategory": "clarification_needed"
+          }
+        }
+      ]
+    },
+    {
+      "problemVersionId": "pv-camera-1",
+      "referenceAnswer": "Collect independently labeled, paired images from both cameras and compare error rates on the same items. Check resolution, color response, focus, compression, crop, and preprocessing rather than relying on average brightness. Inspect score distributions and false positives by defect type. Change one factor at a time; for example, align the preprocessing pipeline and compare again. Only choose recalibration, data collection, or retraining after the experiment identifies the failure mechanism. Evaluate the intervention on a held-out sample from both cameras.",
+      "reasoningRubric": [
+        {
+          "id": "pv-camera-1-r1",
+          "label": "Reasoning point 1",
+          "description": "Hold the physical item constant when comparing cameras.",
+          "weight": 1,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Hold the physical item constant when comparing cameras."
+        },
+        {
+          "id": "pv-camera-1-r2",
+          "label": "Reasoning point 2",
+          "description": "Distinguish preprocessing, distribution shift, and threshold effects.",
+          "weight": 1,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Distinguish preprocessing, distribution shift, and threshold effects."
+        },
+        {
+          "id": "pv-camera-1-r3",
+          "label": "Reasoning point 3",
+          "description": "Validate the selected intervention on independent samples.",
+          "weight": 1,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Validate the selected intervention on independent samples."
+        }
+      ],
+      "acceptableAlternativeApproaches": [
+        {
+          "id": "pv-camera-1-alt1",
+          "description": "A staged rollback or controlled camera crossover can isolate a deployment change.",
+          "rubricNodeIds": [
+            "pv-camera-1-r1"
+          ]
+        },
+        {
+          "id": "pv-camera-1-alt2",
+          "description": "A calibrated uncertainty or abstention policy may be a temporary response while collecting reliable labels.",
+          "rubricNodeIds": [
+            "pv-camera-1-r1"
+          ]
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "pv-camera-1-mc1",
+          "title": "One metric proves the explanation",
+          "description": "An aggregate measurement alone does not establish the mechanism or task utility.",
+          "relatedRubricNodeIds": [
+            "pv-camera-1-r1"
+          ]
+        }
+      ],
+      "hintLadder": [
+        {
+          "id": "pv-camera-1-hint1",
+          "targetRubricNodeId": "pv-camera-1-r1",
+          "level": 1,
+          "text": "Which comparison would keep the physical item fixed while changing only the camera?"
+        }
+      ],
+      "completionCriteria": {
+        "requiredNodeIds": [
+          "pv-camera-1-r1"
+        ],
+        "alternativeNodeGroups": [
+          [
+            "pv-camera-1-r2"
+          ],
+          [
+            "pv-camera-1-r3"
+          ]
+        ],
+        "description": "Explain the core distinction and support it with an experiment or a relevant limitation."
+      },
+      "evaluationExamples": [
+        {
+          "id": "pv-camera-1-example1",
+          "response": "The average metric looks good, so the model must be useful.",
+          "expectedResult": {
+            "rubricAssessments": [
+              {
+                "rubricNodeId": "pv-camera-1-r1",
+                "status": "partial",
+                "evidence": [
+                  {
+                    "messageId": "pv-camera-1-message1",
+                    "quote": "average metric"
+                  }
+                ]
+              }
+            ],
+            "detectedMisconceptions": [],
+            "contradictions": [],
+            "needsEscalation": false,
+            "escalationReason": null,
+            "feedbackCategory": "clarification_needed"
+          }
+        }
+      ]
+    },
+    {
+      "problemVersionId": "pv-representation-1",
+      "referenceAnswer": "A useful representation retains the distinctions needed for the target task and makes them accessible to the downstream model. Equal vector sizes do not imply equal information or accessibility. Reconstruction can prioritize background, texture, or other high-variance details while losing a small task-relevant signal. Compare downstream performance under controlled data and model capacity, test generalization, and use interventions to inspect which nuisance factors affect the representation. Compression and reconstruction can be useful tools, but neither alone establishes task sufficiency.",
+      "reasoningRubric": [
+        {
+          "id": "pv-representation-1-r1",
+          "label": "Reasoning point 1",
+          "description": "Utility depends on the downstream task.",
+          "weight": 1,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Utility depends on the downstream task."
+        },
+        {
+          "id": "pv-representation-1-r2",
+          "label": "Reasoning point 2",
+          "description": "Reconstruction and task losses can favor different information.",
+          "weight": 1,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Reconstruction and task losses can favor different information."
+        },
+        {
+          "id": "pv-representation-1-r3",
+          "label": "Reasoning point 3",
+          "description": "Evaluate usefulness with controlled downstream comparisons.",
+          "weight": 1,
+          "prerequisiteNodeIds": [],
+          "sufficientEvidenceDescription": "Evaluate usefulness with controlled downstream comparisons."
+        }
+      ],
+      "acceptableAlternativeApproaches": [
+        {
+          "id": "pv-representation-1-alt1",
+          "description": "Describe task sufficiency or information bottlenecks without asserting that an unsupervised metric guarantees downstream quality.",
+          "rubricNodeIds": [
+            "pv-representation-1-r1"
+          ]
+        },
+        {
+          "id": "pv-representation-1-alt2",
+          "description": "Use nuisance invariance and linear-probe limitations to explain why equal dimension is not enough.",
+          "rubricNodeIds": [
+            "pv-representation-1-r1"
+          ]
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "pv-representation-1-mc1",
+          "title": "One metric proves the explanation",
+          "description": "An aggregate measurement alone does not establish the mechanism or task utility.",
+          "relatedRubricNodeIds": [
+            "pv-representation-1-r1"
+          ]
+        }
+      ],
+      "hintLadder": [
+        {
+          "id": "pv-representation-1-hint1",
+          "targetRubricNodeId": "pv-representation-1-r1",
+          "level": 1,
+          "text": "Could an encoder preserve the background very well while discarding a detail needed for the task?"
+        }
+      ],
+      "completionCriteria": {
+        "requiredNodeIds": [
+          "pv-representation-1-r1"
+        ],
+        "alternativeNodeGroups": [
+          [
+            "pv-representation-1-r2"
+          ],
+          [
+            "pv-representation-1-r3"
+          ]
+        ],
+        "description": "Explain the core distinction and support it with an experiment or a relevant limitation."
+      },
+      "evaluationExamples": [
+        {
+          "id": "pv-representation-1-example1",
+          "response": "The average metric looks good, so the model must be useful.",
+          "expectedResult": {
+            "rubricAssessments": [
+              {
+                "rubricNodeId": "pv-representation-1-r1",
+                "status": "partial",
+                "evidence": [
+                  {
+                    "messageId": "pv-representation-1-message1",
+                    "quote": "average metric"
+                  }
+                ]
+              }
+            ],
+            "detectedMisconceptions": [],
+            "contradictions": [],
+            "needsEscalation": false,
+            "escalationReason": null,
+            "feedbackCategory": "clarification_needed"
+          }
+        }
+      ]
+    }
+  ],
+  "deferredDebriefs": {
+    "pv-drone-1": {
+      "problemVersionId": "pv-drone-1",
+      "reasoningSummary": "The sample discussion starts by identifying the simulation-to-reality dynamics gap. A complete argument connects that gap to a learning signal, explains why the latent is useful, and checks adaptation on unseen dynamics. This is a reference debrief, not an evaluation of your messages.",
+      "keyIdea": "A representation is more likely to capture system dynamics when its training objective requires it to explain how actions change the system state.",
+      "referenceAnswer": "Train the history encoder jointly with an action-conditioned dynamics predictor. Given the current state, action, and latent z inferred only from earlier history, predict the next state or a short future trajectory. Minimize a suitable state-transition prediction loss across diverse simulated dynamics. Different masses, motor strengths, and drag change the effect of the same action, so this objective creates pressure for z to retain information about those effects. Keep the target outside the encoder's input window to avoid leakage, and compare against predictors that ignore or shuffle z to check for shortcuts. A good prediction loss alone does not establish control usefulness: evaluate closed-loop adaptation on held-out physical parameter combinations, with a no-adaptation baseline. z need not uniquely identify every physical parameter; it must preserve task-relevant distinctions that the history makes identifiable.",
+      "acceptedReasoningPoints": [
+        "Physical variation changes the response to actions, not just the appearance of an observation.",
+        "The learning signal should benefit from information available in history but missing from the current state alone.",
+        "Test whether the model actually uses z and whether it improves control on held-out dynamics."
+      ],
+      "alternativeValidApproaches": [
+        "Train the context encoder through a control objective across randomized dynamics, then show by ablation that history-dependent adaptation improves held-out control performance.",
+        "Learn a privileged dynamics embedding in simulation and distill it into a history encoder, checking that the embedding captures control-relevant variation and transfers to unseen dynamics."
+      ]
+    },
+    "pv-camera-1": {
+      "problemVersionId": "pv-camera-1",
+      "reasoningSummary": "A strong diagnosis separates changes in image formation, preprocessing, label quality, and score calibration. These are sample reasoning points, not a score of your response.",
+      "keyIdea": "Use paired observations and controlled interventions to isolate the effect of a camera change before changing the model.",
+      "referenceAnswer": "Collect independently labeled, paired images from both cameras and compare error rates on the same items. Check resolution, color response, focus, compression, crop, and preprocessing rather than relying on average brightness. Inspect score distributions and false positives by defect type. Change one factor at a time; for example, align the preprocessing pipeline and compare again. Only choose recalibration, data collection, or retraining after the experiment identifies the failure mechanism. Evaluate the intervention on a held-out sample from both cameras.",
+      "acceptedReasoningPoints": [
+        "Hold the physical item constant when comparing cameras.",
+        "Distinguish preprocessing, distribution shift, and threshold effects.",
+        "Validate the selected intervention on independent samples."
+      ],
+      "alternativeValidApproaches": [
+        "A staged rollback or controlled camera crossover can isolate a deployment change.",
+        "A calibrated uncertainty or abstention policy may be a temporary response while collecting reliable labels."
+      ]
+    },
+    "pv-representation-1": {
+      "problemVersionId": "pv-representation-1",
+      "reasoningSummary": "A useful explanation relates retained information to the downstream task and distinguishes reconstruction from task performance. This reference is shared for reflection only.",
+      "keyIdea": "A representation is useful relative to a task; preserving more input detail is not always the same as preserving the relevant information.",
+      "referenceAnswer": "A useful representation retains the distinctions needed for the target task and makes them accessible to the downstream model. Equal vector sizes do not imply equal information or accessibility. Reconstruction can prioritize background, texture, or other high-variance details while losing a small task-relevant signal. Compare downstream performance under controlled data and model capacity, test generalization, and use interventions to inspect which nuisance factors affect the representation. Compression and reconstruction can be useful tools, but neither alone establishes task sufficiency.",
+      "acceptedReasoningPoints": [
+        "Utility depends on the downstream task.",
+        "Reconstruction and task losses can favor different information.",
+        "Evaluate usefulness with controlled downstream comparisons."
+      ],
+      "alternativeValidApproaches": [
+        "Describe task sufficiency or information bottlenecks without asserting that an unsupervised metric guarantees downstream quality.",
+        "Use nuisance invariance and linear-probe limitations to explain why equal dimension is not enough."
+      ]
+    }
+  }
+}
