@@ -2,7 +2,7 @@
 
 Current milestone: **M2**
 
-Status: **Hosted user flow and admin pages confirmed by user; remaining verification pending**
+Status: **Core M2 browser flows confirmed by user; hosted isolation/RLS verification pending**
 
 Last updated: 2026-10-06 (Asia/Seoul)
 
@@ -12,8 +12,10 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 거절된다. 이후 사용자가 가입 메일 수신과 로그인된 상태에서의 인터뷰 시작, 메시지/힌트 저장,
 새로고침 후 복원 및 일반 계정의 `/admin` 접근 차단을 확인했다.
 첫 관리자 지정 절차 후 `/admin`, `/admin/categories`, `/admin/problems` 화면 열람도 확인했다.
+관리자 드론 문제의 reference answer/rubric, Finish 후 대화·힌트 review, Sign out/재로그인 후
+완료 기록 유지까지 사용자 확인이 끝났다.
 이는 사용자 보고이며 자동화된 계정 검증과 구분한다.
-private package 내용, 사용자 간 데이터 격리 등 아래 미검증 항목은 남아 있으며 M3는 미착수다.
+사용자 간 데이터 격리와 실제 DB 권한 검사 등 아래 미검증 항목은 남아 있으며 M3는 미착수다.
 
 ## Completed — repository implementation
 
@@ -41,15 +43,15 @@ private package 내용, 사용자 간 데이터 격리 등 아래 미검증 항�
 - 일반 계정으로 `/admin`에 접속하면 “This page is not available.”가 표시되는 것을 확인했다.
   이 결과를 모든 Admin 하위 route나 private table의 직접 접근 검증으로 확대하지 않는다.
 - 첫 관리자 지정 안내 이후 같은 계정에서 `/admin`, `/admin/categories`, `/admin/problems`가 열리는 것을 확인했다.
-  private evaluation package의 실제 내용 열람까지 확인했다고 해석하지 않는다.
+- 관리자 Problems에서 드론 문제의 Evaluation package 안에 reference answer와 reasoning rubric이 보이는 것을 확인했다.
+- Finish interview 후 본인의 저장된 대화와 사용한 힌트가 review에 표시되는 것을 확인했다.
+- Sign out 후 다시 로그인해도 `/review`의 완료 기록이 유지되는 것을 확인했다.
 - 사용자의 브라우저 수동 확인 결과다. Codex가 계정 credential을 받아 재현하거나 DB row를 직접 검사한 것은 아니다.
 
 ## Not yet verified against hosted Supabase
 
-- Sign out 후 재로그인, 만료된 session의 자동 refresh
-- Finish interview 후 본인의 completed review 조회
+- 만료된 session의 자동 refresh
 - 로그인된 일반 계정의 Admin 하위 route 차단 및 private package 직접 조회 차단
-- 실제 admin 계정의 private evaluation package 내용 열람
 - 두 일반 계정 사이의 데이터 격리, 일반 user의 role 변경 차단, 실제 RLS/column grant 실행 결과
 - hosted DB에서 supabase/tests/rls.sql 실행과 로그인된 인터뷰 payload 검사
 
@@ -167,6 +169,7 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 
 - 사용자가 가입 메일 수신 문제 해결과 위 인터뷰 저장/복원 흐름을 확인했다.
 - 이어 일반 계정의 `/admin` 접근 차단과 첫 관리자 지정 안내 후 Admin/Categories/Problems 화면 열람도 사용자 확인으로 기록했다.
+- 관리자 정답/rubric 열람, Finish 후 대화·힌트 review, Sign out/재로그인 후 완료 기록 유지의 세 항목도 사용자가 모두 확인했다.
 - STATUS, README, SUPABASE_SETUP, ARCHITECTURE의 현재 검증 상태를 맞췄다.
 - 문서만 변경했다. `git diff --check`로 변경 형식을 검사하며 lint/typecheck/test/build는 재실행하지 않는다.
 - Auth 설정, DB 권한, UI, 기존 서버를 변경하지 않았고 M3를 시작하지 않았다.
@@ -188,7 +191,7 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 
 **M3 — Admin content lifecycle and problem package management**
 
-- 먼저 남은 hosted Auth/admin/RLS/review 검증을 완료한다.
+- 먼저 남은 hosted 계정 간 격리/RLS/session refresh/payload 검증을 완료한다.
 - DB-backed category/problem version 편집과 private package 검수 흐름을 설계한다.
 - draft → review → human-approved publish와 변경 이력을 구현한다.
 - 현재 source/candidate demo와 실제 관리 workflow의 경계를 정리한다.

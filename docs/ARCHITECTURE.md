@@ -327,8 +327,9 @@ FastAPI, Redis, Celery, vector DB, microservices, Kubernetes도 실제 필요성
 migration과 `supabase/tests/rls.sql`을 실행했다. 이후 사용자가 가입 메일 수신과 로그인된 인터뷰의
 메시지/힌트 저장 및 새로고침 복원을 확인했다. 일반 계정의 `/admin` 차단 및 첫 관리자 지정 안내 후
 Admin/Categories/Problems 화면 열람도 사용자 보고로 확인했다. 자동화된 계정 검증과 구분한다.
-private package 내용 열람, hosted 계정 간 RLS, logout/재로그인, session 만료/refresh,
-완료 review와 동시성 검증은 남아 있다.
+추가로 관리자의 드론 문제 reference answer/rubric 열람, Finish 후 대화·힌트 review,
+logout/재로그인 후 완료 기록 유지도 사용자가 확인했다.
+hosted 계정 간 RLS, 일반 계정의 private table 직접 조회 차단, session 만료/refresh와 동시성 검증은 남아 있다.
 로컬 lint/typecheck/test/build와 bundle/import 경계 검사는 실제 실행 결과를 STATUS에 기록한다.
 동적 인터뷰 HTML/RSC와 auth 사용자 간 격리는 실제 프로젝트를 연결한 뒤 검증해야 한다.
 

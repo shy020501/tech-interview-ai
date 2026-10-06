@@ -5,8 +5,9 @@ Supabase check 성공과 실제 공개 category 9개/published 문제 3개 조�
 익명 private 데이터 접근은 거절된다. 이후 사용자가 가입 메일 수신과 로그인된 상태의 인터뷰 시작,
 메시지/힌트 저장 및 새로고침 복원을 확인했다. 일반 계정의 `/admin` 접근 차단과 첫 관리자 지정 안내 후
 `/admin`, `/admin/categories`, `/admin/problems` 화면 열람도 사용자 확인이 끝났다.
-현재 프로젝트는 아래 6–7번의 남은 검증을 이어간다. 완료 review, logout/재로그인, private package 내용,
-일반 계정의 Admin 하위 route/private table 접근 차단과 사용자 간 격리 등은 **STATUS의 미검증 목록을 따른다.**
+관리자 드론 문제의 정답/rubric 열람, Finish 후 대화·힌트 review, Sign out/재로그인 후 완료 기록 유지도 확인했다.
+현재 프로젝트는 아래 6–7번의 남은 검증을 이어간다. 일반 계정의 Admin 하위 route/private table 접근 차단,
+사용자 간 격리, session 만료 후 refresh와 로그인된 payload 검사는 **STATUS의 미검증 목록을 따른다.**
 기존 migration을 SQL editor에서 다시 실행할 필요가 없다. 실제 검증 결과는 STATUS에 기록한다.
 
 ## 1. Project와 환경 변수
