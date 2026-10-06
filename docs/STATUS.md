@@ -115,7 +115,17 @@ Verification:
   detail fetch on its initial list, explicit selection opens it, dirty Close editor asks for confirmation,
   and deleting the selected problem returns to the list. Screenshots inspected; globals.css remains unchanged.
 - No hosted content was deleted. Hosted authenticated deletion is not claimed tested; its database behavior
-  was exercised only in disposable local PostgreSQL. Migration application is checked after the GitHub push.
+  was exercised only in disposable local PostgreSQL.
+- Commit `78da999` pushed to the existing main integration; its Supabase Preview check completed successfully.
+  The new migration is applied. Anonymous calls to all three delete RPCs return 401 / SQLSTATE 42501.
+  Public metadata before/after application is unchanged: 9 categories and 3 current published problems/versions.
+- Live localhost HTTP checks pass for public catalog/details/Auth pages (200), protected admin/preview/review
+  redirects (307), and absence of private packages in public HTML/RSC. The original port-3001 process remains
+  running; temporary fixture/WebDriver processes were stopped.
+
+Manual follow-up: refresh the Admin pages, save a source/candidate and confirm the form closes. Open a problem
+through Edit draft, then Close editor. Delete only disposable entries without references/interviews to check the
+new authenticated end-to-end actions in your own browser; confirmed deletion is permanent.
 
 ## Still mock / not implemented
 
