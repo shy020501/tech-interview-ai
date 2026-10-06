@@ -5,6 +5,7 @@ export interface Category {
   name: string;
   parentId: string | null;
   description?: string;
+  sortOrder?: number;
 }
 
 export interface Competency {

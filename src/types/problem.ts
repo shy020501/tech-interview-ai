@@ -30,7 +30,7 @@ export interface ProblemPublic {
   tags: string[];
   status: PublicationStatus;
   publishedAt: string | null;
-  origin: "original_mock";
+  origin: "original_mock" | "manual";
 }
 
 /** A deliberately limited review projection; not the full evaluation package. */

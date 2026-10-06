@@ -9,7 +9,7 @@
 - 이 repository 밖의 프로젝트, 개인 사이트, 상위 repository를 수정하지 않는다.
 - 변경 전 현재 파일, Git 상태, 사용 중인 포트와 프로세스를 먼저 확인한다.
 - 사용자가 명시한 milestone 범위만 구현한다. 완료 후 멈추고 임의로 다음 milestone으로 넘어가지 않는다.
-- 현재 승인 범위는 M2의 Supabase DB/Auth, persistence, User/Admin authorization이다. 현재 repository UI를 source of truth로 유지하고 기존 styling/layout을 복원하거나 재설계하지 않는다. 완료 후 멈추며 M3 content lifecycle/authoring/publish를 시작하지 않는다.
+- 현재 승인 범위는 M3의 수동 source/candidate 관리, problem package 편집/검수/발행, versioning, category 관리, 제한된 hint/debrief 공개다. 현재 repository UI를 source of truth로 유지하고 기존 styling/layout을 복원하거나 재설계하지 않는다. 완료 후 멈추며 M4 실제 LLM evaluator/API/benchmark를 시작하지 않는다.
 - 기존 코드를 삭제하거나 대규모 refactor하기 전에 변경 이유와 영향을 확인한다. 사용자 변경을 덮어쓰거나 관계없는 정리를 하지 않는다.
 - global package를 설치하거나 기존 Node.js/package manager를 불필요하게 업그레이드하지 않는다.
 - 기존 프로세스를 임의로 종료하지 않는다. 검증을 위해 직접 시작한 프로세스만 종료하고 종료 여부를 확인한다.
@@ -30,8 +30,8 @@
 ## 데이터와 권한 경계
 
 - 사용자에게 공개되는 데이터와 서버 전용 정답/평가 데이터를 분리한다.
-- rubric, reasoning graph, misconception, hint ladder, 평가 예제, 원본 reference answer를 client bundle, public asset, RSC props 또는 일반 사용자 API 응답으로 보내지 않는다.
-- 실제 backend에서는 종료 후 reference answer 공개를 세션 종료와 접근 권한을 서버에서 확인한 별도 debrief 응답으로 제한한다. M2 review는 완료된 본인 attempt의 대화/힌트만 제공하고 reference answer 공개를 후속 milestone까지 제한한다. 전체 서버 평가 package는 사용자 화면에 공개하지 않는다.
+- rubric, reasoning graph, misconception, hint ladder, 평가 예제, 원본 reference answer를 공개 client bundle, public asset, 일반 사용자 RSC props 또는 연습 중 API 응답으로 보내지 않는다. 인증된 Admin 편집 화면에는 필요한 private package를 제공할 수 있다.
+- 실제 backend에서는 종료 후 reference answer 공개를 세션 종료와 접근 권한을 서버에서 확인한 별도 debrief 응답으로 제한한다. M3 review는 완료된 본인 attempt의 고정 version에 한해 reference answer와 검수된 key ideas/대안의 제한된 projection을 제공한다. 전체 서버 평가 package는 사용자 화면에 공개하지 않는다.
 - 사용자 영역과 admin 영역의 권한 경계를 유지한다. URL 분리나 UI 숨김만으로 권한을 보장한다고 가정하지 않는다.
 - 향후 admin의 데이터 접근과 변경은 각각 서버에서 권한을 검사한다. 사용자 세션에도 소유권 검사를 적용한다.
 - 자동 생성한 문제는 human approval 없이 publish하지 않는다.

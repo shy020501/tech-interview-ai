@@ -1,3 +1,4 @@
+-- Historical M2-only contract. On the current M3 schema use content_workflow.sql instead.
 -- Run after the migration, in a disposable/staging Supabase project's SQL editor
 -- as postgres. No extensions required. Synthetic users/data are always rolled back.
 -- Hosted execution and local PGlite results are recorded separately in docs/STATUS.md.

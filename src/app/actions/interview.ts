@@ -30,12 +30,13 @@ export async function sendReasoning(attemptId: unknown, message: unknown, reques
     return await snapshot(data);
   } catch { return { ok: false, error: 'Unable to save your response. Please try again.' }; }
 }
-export async function requestHint(attemptId: unknown): Promise<AttemptActionResult> {
+export async function requestHint(attemptId: unknown, requestId: unknown): Promise<AttemptActionResult> {
   if (!await getCurrentUser()) return signInRequired;
-  if (!validUuid(attemptId)) return { ok: false, error: 'This interview is not available.' };
+  if (!validUuid(attemptId) || !validUuid(requestId)) return { ok: false, error: 'This interview is not available.' };
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('request_interview_hint', { p_attempt_id: attemptId });
+    const { data, error } = await supabase.rpc('request_interview_hint', { p_attempt_id: attemptId, p_request_id: requestId });
+    if (error?.code === 'P0002') return { ok: false, hintsExhausted: true, error: 'You have used all reviewed hints for this version.' };
     if (error) return { ok: false, error: 'A hint is not available for this interview right now.' };
     return await snapshot(data);
   } catch { return { ok: false, error: 'Unable to load the hint. Please try again.' }; }

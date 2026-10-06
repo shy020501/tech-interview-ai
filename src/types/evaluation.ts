@@ -53,7 +53,7 @@ export interface ProblemEvaluationPackage {
   problemVersionId: string;
   referenceAnswer: string;
   reasoningRubric: ReasoningRubricNode[];
-  acceptableAlternativeApproaches: { id: string; description: string; rubricNodeIds: string[] }[];
+  acceptableAlternativeApproaches: { id: string; title?: string; description: string; rubricNodeIds: string[] }[];
   misconceptions: Misconception[];
   hintLadder: Hint[];
   completionCriteria: {
@@ -62,7 +62,7 @@ export interface ProblemEvaluationPackage {
     alternativeNodeGroups: string[][];
     description: string;
   };
-  evaluationExamples: { id: string; response: string; expectedResult: EvaluationResult }[];
+  evaluationExamples: { id: string; response: string; expectedResult: EvaluationResult; reviewerNotes?: string }[];
 }
 
 export interface EvaluationReview {

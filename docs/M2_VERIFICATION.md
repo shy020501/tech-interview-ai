@@ -1,4 +1,8 @@
-# M2 — remaining authenticated verification
+# M2 — historical authenticated verification
+
+사용자는 M3 요청에서 이 문서의 검증을 포함한 M2 검증을 모두 완료했다고 확인했다.
+아래 내용은 당시 동작의 기록이다. M3에서는 완료된 본인 attempt에 reference debrief를 공개하고
+hint RPC가 변경되므로 현재 확인 방법은 [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md)를 따른다.
 
 이 안내는 실제 Auth 세션의 HTTP 접근 경계와 로그인된 사용자 응답의 비공개 데이터 부재를 검사한다.
 2026-10-06 사용자가 1~3번에 이상이 없다고 보고했다. 현재 남은 핵심 검증은 4번의 응답 본문 확인이다.

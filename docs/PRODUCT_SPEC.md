@@ -7,7 +7,7 @@
 내려야 하는 Advanced / Scenario-based 질문을 핵심 콘텐츠로 한다.
 
 이 문서는 목표 제품의 명세다. M0에서 독립 Next.js 프로젝트와 개발 환경을 준비했고,
-M1의 영어 UI와 data contract를 바탕으로 M2에서 Supabase DB/Auth와 persistence를 연결한다.
+M1 영어 UI와 M2 Supabase DB/Auth·persistence 위에 M3 수동 콘텐츠 작성/검수/발행을 연결한다.
 현재 repository의 사용자 수정 UI를 기준으로 유지하며 실제 evaluator는 아직 없다.
 DB 연결에는 사용자가 제공하는 Supabase 프로젝트와 migration/seed 적용이 필요하다.
 
@@ -50,7 +50,7 @@ Core 질문으로 기초 개념도 연습할 수 있지만 Advanced 질문을 �
 
 Visualization은 문제 이해에 필요한 도식, 데이터, 그림 등을 위한 개념이다.
 M1의 대표 Drone 문제에는 HTML/CSS 기반 history → encoder → latent → controller →
-action 도식을 제공한다. 모든 문제는 서비스가 만든 original mock scenario로 표시한다.
+action 도식을 제공한다. 기존 seed 문제는 original mock scenario이며 M3에서 새로 작성한 문제는 manually authored scenario로 표시한다.
 
 ## 분류 모델
 
@@ -112,7 +112,7 @@ difficulty도 별도 속성으로 취급한다. M1은 `beginner`, `intermediate`
 - evaluator의 자체 confidence만으로 정답을 확정하지 않는다.
 - 평가의 품질은 정답 유출 방지, 타당한 대안 수용, 잘못된 추론 구별 능력으로 확인한다.
 
-## M2의 실제 범위와 한계
+## M3의 실제 범위와 한계
 
 - 로그인 없이 published/current-version 문제를 탐색하고 scenario/question/visualization을 읽는다.
 - 인터뷰 시작/저장, 메시지/힌트 기록과 review history에는 email/password 로그인이 필요하다.
@@ -122,12 +122,14 @@ difficulty도 별도 속성으로 취급한다. M1은 `beginner`, `intermediate`
 - 대표 Drone Dynamics Adaptation은 Advanced / Intermediate다. 기존 문제 문구와 category를 보존한다.
 - 같은 사용자의 같은 문제에는 in_progress attempt 하나를 resume한다. Finish 후 새 attempt를
   만들 수 있다. 각 attempt는 시작한 problem version에 고정된다.
-- user/interviewer 메시지와 명시적으로 요청한 고정 첫 힌트를 저장한다. 피드백은 deterministic
-  mock이며 progress도 시연 값이다. 실제 평가/적응형 hint selection은 없다.
-- review는 본인의 completed attempt 대화/힌트만 보여 준다. reference answer, key idea,
-  평가 debrief는 완료 조건 검증을 갖춘 후속 milestone까지 공개하지 않는다.
-- Admin은 DB category/problem/private package를 조회한다. source/candidate/eval은 권한으로
-  보호된 demo이며 local preview 편집은 DB를 바꾸지 않는다. full content lifecycle은 M3 범위다.
+- user/interviewer 메시지를 저장하고, 명시적인 요청마다 해당 version의 검수된 hint 하나를 level/list 순서로 공개한다.
+  피드백은 deterministic mock이며 progress도 시연 값이다. 실제 평가/적응형 hint selection은 없다.
+- review는 본인의 completed attempt에 한해 대화/힌트와 고정 version의 reference answer, 검수된 key ideas/대안을 제공한다.
+  개인 reasoning 점수나 AI 진단을 생성하지 않으며, 전체 rubric/미요청 hint/evaluation examples는 공개하지 않는다.
+- Admin은 source/candidate/category를 관리하고 public/private problem package를 작성·검수·preview·발행한다.
+  발행 후 수정은 새 version으로 진행하며 기존 attempt와 발행본은 보존한다. evaluator QA만 명시적인 demo다.
 - Supabase가 미설정이면 service unavailable/비활성 auth 폼을 표시하며 데이터를 저장한 것처럼
   보이지 않는다. 실제 연결 검증 상태는 STATUS와 SUPABASE_SETUP을 참조한다.
 - LLM, crawler/discovery, automatic publish, production deployment, Korean localization은 없다.
+
+수동 workflow와 발행 조건은 [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md)를 따른다. M4 evaluator/benchmark는 아직 구현하지 않는다.

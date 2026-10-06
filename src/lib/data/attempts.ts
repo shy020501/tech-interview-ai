@@ -53,3 +53,15 @@ export async function getCompletedAttempts() {
   if (versionError) throw new Error('Unable to load interview history.');
   return data.map((item) => ({ id: item.id, completedAt: item.completed_at, title: versions.find((v) => v.id === item.problem_version_id)?.title ?? 'Interview', version: versions.find((v) => v.id === item.problem_version_id)?.version_number }));
 }
+
+/** DB verifies completed status + ownership and returns only the released review fields. */
+export async function getAttemptDebrief(id:string):Promise<import('@/types/authoring').ReleasedDebrief|null> {
+  await requireUser('/review'); if(!validUuid(id))return null;
+  const db=await createClient();
+  const {data,error}=await db.rpc('get_attempt_debrief',{p_attempt_id:id});
+  if(error?.code==='42501'||error?.code==='P0002')return null;
+  if(error)throw new Error('Unable to load reference material.');
+  const value=data as unknown as import('@/types/authoring').ReleasedDebrief;
+  if(!value||typeof value.referenceAnswer!=='string'||!Array.isArray(value.keyIdeas)||!Array.isArray(value.alternativeApproaches))throw new Error('Unable to load reference material.');
+  return {problemVersionId:value.problemVersionId,referenceAnswer:value.referenceAnswer,keyIdeas:value.keyIdeas.map(x=>({label:x.label,description:x.description})),alternativeApproaches:value.alternativeApproaches.map(x=>({id:x.id,title:x.title,description:x.description}))};
+}

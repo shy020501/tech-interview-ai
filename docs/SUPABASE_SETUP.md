@@ -1,15 +1,7 @@
-# Supabase setup — M2
+# Supabase setup — M3
 
-2026-10-06 사용자 승인된 GitHub integration으로 M2 schema와 initial catalog migration을 적용했다.
-Supabase check 성공과 실제 공개 category 9개/published 문제 3개 조회를 확인했다.
-익명 private 데이터 접근은 거절된다. 이후 사용자가 가입 메일 수신과 로그인된 상태의 인터뷰 시작,
-메시지/힌트 저장 및 새로고침 복원을 확인했다. 일반 계정의 `/admin` 접근 차단과 첫 관리자 지정 안내 후
-`/admin`, `/admin/categories`, `/admin/problems` 화면 열람도 사용자 확인이 끝났다.
-관리자 드론 문제의 정답/rubric 열람, Finish 후 대화·힌트 review, Sign out/재로그인 후 완료 기록 유지도 확인했다.
-hosted SQL Editor의 RLS 검사도 사용자 실행 기준 통과로 기록했다. 공개 Data API에서 category 9개/problem 3개와
-공개 테스트 행 부재를 추가 확인했다. 이후 두 실제 계정의 Data API SELECT/앱 route 경계도 사용자 확인으로 기록했다.
-로그인된 응답 본문 검사, session refresh와 동시성은 **STATUS의 미검증 목록을 따른다.**
-기존 migration을 SQL editor에서 다시 실행할 필요가 없다. 실제 검증 결과는 STATUS에 기록한다.
+사용자가 M3 요청에서 실제 Supabase 연결, signup/login/logout, admin 지정, RLS 및 M2 검증을 모두 완료했다고 확인했다.
+기존 project/env/Auth 설정을 그대로 사용한다. 재설정이나 DB reset은 필요 없다. M3 적용/검증 결과는 STATUS를 따른다.
 
 ## 1. Project와 환경 변수
 
@@ -38,7 +30,7 @@ legacy anon key를 사용하는 프로젝트라면 그 값을 위 PUBLISHABLE_KE
 서버도 동일한 publishable key + 사용자 cookie session으로 RLS를 적용한다.
 
 `.env.local`과 실제 키를 source, 문서, commit, 채팅에 붙여 넣지 않는다. `.gitignore`는
-`.env*`를 제외하고 비어 있는 root `.env.example`만 허용한다. LLM 변수는 M2에서 사용하지 않는다.
+`.env*`를 제외하고 비어 있는 root `.env.example`만 허용한다. LLM 변수는 M3에서 사용하지 않는다.
 
 ## 2. Migration 적용
 
@@ -56,6 +48,10 @@ legacy anon key를 사용하는 프로젝트라면 그 값을 위 PUBLISHABLE_KE
 
 1. `supabase/migrations/20261005000100_m2_foundation.sql`: 9개 table, constraint, trigger, grant, RLS, RPC.
 2. `supabase/migrations/20261006000100_m2_initial_catalog.sql`: 기존 M2 초기 category/problem/private package.
+3. `supabase/migrations/20261006000200_m3_content_workflow.sql`: 수동 source/candidate, version category/source, 작성/발행 RPC, 순차 hint와 완료 debrief.
+
+M3는 새 table/column을 추가하고 기존 version 분류를 backfill한다. 문제 본문/평가 package/attempt를 삭제하거나 초기화하지 않는다.
+발행본/기존 attempt는 보존하고 authenticated table mutation을 검증된 RPC로 제한한다. 적용 전 로컬 PostgreSQL 검사를 실행한다.
 
 Supabase migration runner가 각 파일의 transaction과 migration history를 관리한다. runner 내부에서
 transaction을 조기에 끝내지 않도록 migration 자체의 최상위 BEGIN/COMMIT은 사용하지 않는다.
@@ -140,42 +136,30 @@ UUID placeholder를 실제 확인한 값으로 바꾸고 반환 row가 맞는지
 
 ## 6. RLS 확인
 
-아래 query에서 9개 table 모두 `rowsecurity=true`인지 확인한다.
+13개 application table의 RLS가 활성화되어 있어야 한다.
 
 ```sql
-select tablename, rowsecurity
-from pg_tables
+select tablename, rowsecurity from pg_tables
 where schemaname = 'public'
-  and tablename in ('profiles', 'categories', 'problems', 'problem_versions',
-    'problem_categories', 'problem_evaluation_packages', 'attempts', 'attempt_messages', 'hint_events')
+  and tablename in ('profiles','categories','problems','problem_versions','problem_categories',
+    'problem_evaluation_packages','attempts','attempt_messages','hint_events','sources',
+    'question_candidates','problem_version_categories','problem_sources')
 order by tablename;
-
-select tablename, policyname, roles, cmd, qual, with_check
-from pg_policies
-where schemaname = 'public'
-order by tablename, policyname;
 ```
 
-이 목록만으로 격리가 검증되지는 않는다. 별도 개발/검증 프로젝트의 SQL editor에서
-`supabase/tests/rls.sql` 전체를 실행한다. synthetic 사용자/문제를 transaction에 만들고
-anon/user A/user B/admin 역할별 허용/거절, role 위조 방지, 다른 사용자 session 격리,
-메시지/힌트 재시도, 버전 고정, 완료 후 변경 거절을 검사한 뒤 rollback한다. 예외가 나면 실패다.
-CLI/pgTAP extension은 필요 없다. 이 SQL은 로컬 PGlite의 최소 Auth stub에서 통과했다.
-2026-10-06 전체 실행 안내 후 사용자가 hosted SQL Editor에서 오류 없이 finish_interview/UUID 결과를 보고했다.
-hosted SQL 검사는 사용자 실행 기준 통과로 기록하며 Codex의 직접 실행이나 실제 Auth 토큰의 HTTP 검사와 구분한다.
+M3 검사는 `supabase/tests/content_workflow.sql` 전체를 trusted SQL editor에서 실행한다. synthetic Auth 사용자와
+m3-check-* 콘텐츠를 한 transaction에 만들고 role/claim을 전환하여 권한, 작성/발행, version 고정, hint,
+완료 review를 검사한 뒤 ROLLBACK한다. 기존 계정/콘텐츠는 수정하지 않는다. 부분 실행하지 않는다.
+로컬 실행 결과와 hosted 실행 결과는 STATUS에 구분한다. `supabase/tests/rls.sql`은 이전 M2 계약의 역사적 검사다.
 
-결과에 `finish_interview`와 UUID 한 행이 보이는 것은 정상이다. 마지막 SELECT가 테스트 attempt ID를 반환한다.
-그 뒤 DO assertion, RESET ROLE, ROLLBACK은 결과 행을 만들지 않는다. **BEGIN부터 마지막 ROLLBACK까지
-전체 실행했고 오류가 없을 때** 준비된 SQL 검사가 통과한 것이다. UUID 출력만으로 부분 실행의 성공을 판정하지 않는다.
-
-일반 계정에서 private table SELECT는 row가 없거나 권한 거절이어야 한다. 직접 attempt/message/hint
-INSERT/UPDATE/DELETE는 거절되어야 하며 본인 확인 RPC만 변경을 허용한다. Admin에게도 다른 사용자의
-attempt 조회 권한을 암묵적으로 주지 않는다. reasoning_state는 소유자에게도 직접 column SELECT를 허용하지 않는다.
+일반 계정은 private package/source/candidate를 직접 읽을 수 없다. 콘텐츠와 attempt의 직접 테이블 쓰기는
+admin에게도 허용하지 않고 역할/소유권/입력을 확인하는 RPC만 허용한다. Profile role 승격은 기존처럼 trusted SQL만 수행한다.
 
 ## 7. 로컬 실행과 브라우저 검증
 
-남은 실제 Auth 세션 검증의 실행 순서와 성공 기준은 [M2_VERIFICATION.md](M2_VERIFICATION.md)를 따른다.
-`pnpm verify:access`는 도메인 데이터를 읽기만 하며 별도 관리자 키 없이 두 계정의 Data API 경계를 검사한다.
+M2 검증은 사용자 완료 확인을 따르며 반복하지 않는다. M3 Admin→User flow는
+[CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md)의 작성/브라우저 검사 순서를 따른다.
+`pnpm verify:access`는 기존 계정의 읽기 권한을 추가 확인할 때 사용할 수 있다.
 
 환경 변수 설정을 마친 뒤 기존 개발 서버를 실행한 터미널에서 정상 종료하고 다시 시작한다.
 다른 프로세스를 임의로 종료하지 않는다. `NEXT_PUBLIC_*`를 바꾼 production build는 다시 생성해야 한다.
@@ -190,15 +174,15 @@ VS Code Remote SSH의 Ports에서 3001을 forward하고 `http://localhost:3001`�
 | Session | 확인 |
 | --- | --- |
 | 로그인 없음 | `/problems`의 published 목록, 문제 본문/visualization 표시, 저장 동작은 Sign in 안내 |
-| 일반 user A | signup/login/logout, Start interview, 메시지/고정 hint, reload/resume, Finish 후 review |
+| 일반 user A | signup/login/logout, Start interview, 메시지/순차 hint, reload/resume, Finish 후 review |
 | 일반 user B | A의 attempt ID로 review/action/Data API 접근 불가 |
 | 일반 user | `/admin` 및 하위 route에서 Admin UI/data 수신 불가, private package 직접 SELECT 불가 |
-| admin | `/admin/categories`, `/admin/problems` 및 private package 조회 가능 |
+| admin | source/candidate/category CRUD, problem package 편집/preview/검증/발행, 새 version 생성 |
 | public | draft/needs_review/archived slug와 이전 미공개 version 직접 조회 불가 |
 
 브라우저 Network의 일반 문제 HTML/RSC/초기 client props에 reference answer, rubric,
-misconceptions, 전체 hint ladder, evaluation examples가 없는지 확인한다. 클릭한 고정 hint와
-이전에 본인이 요청해 저장된 hint는 재개 시 표시되어도 된다. `/review`에서도 reference answer는 아직 제공하지 않는다.
+misconceptions, 전체 hint ladder, evaluation examples가 없는지 확인한다. 명시적으로 요청한 hint와
+이전에 본인이 요청해 저장된 hint는 재개 시 표시되어도 된다. `/review`는 완료된 본인 attempt에만 reference answer와 제한된 key ideas/대안을 제공한다. in-progress/타인 attempt는 거절된다.
 
 ```bash
 pnpm lint

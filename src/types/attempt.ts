@@ -50,4 +50,4 @@ export interface AttemptSession {
   startedAt: string;
   completedAt: string | null;
 }
-export type AttemptActionResult = { ok: true; attempt: AttemptSession } | { ok: false; error: string; signIn?: boolean };
+export type AttemptActionResult = { ok: true; attempt: AttemptSession } | { ok: false; error: string; signIn?: boolean; hintsExhausted?: boolean };
