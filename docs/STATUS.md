@@ -187,6 +187,18 @@ new authenticated end-to-end actions in your own browser; confirmed deletion is 
   odd-space/tab outdent, Escape navigation, invalid/corrected JSON and mock save/reopen behavior for the actual
   components. Both completion groups and visualization JSON use the shared control. No hosted data was changed.
 
+## M3 follow-up — left-column publication controls (2026-10-06)
+
+- Draft status, Save/Validate and Human review/Publish now occupy the left column directly below
+  Sources/provenance. Feedback stays nearby; control rows stack within the narrower panel.
+- Public and private content retain one form with separate disabled/dirty fieldsets. Review approval stays
+  outside content change tracking; editing either column clears approval and Save still validates/saves both.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
+  `git diff --check`: PASS.
+- Isolated Firefox verified half-width placement, approval/dirty behavior, both-column save/reopen,
+  hidden invalid JSON blocking save, nearby server errors and 500px stacking without overflow. Desktop/mobile
+  screenshots inspected. Server responses were simulated; no hosted data or database schema was changed.
+
 ## Still mock / not implemented
 
 - Interview feedback and progress remain explicitly scripted; no personal correctness/rubric judgment.

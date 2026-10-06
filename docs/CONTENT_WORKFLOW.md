@@ -47,6 +47,10 @@ Choose a version in **Version history**. For a draft, edit:
 - Evaluation package: reference answer, rubric, alternatives, misconceptions, hints, completion criteria and examples.
 - Sources/provenance: optional references with relation type and attribution notes, stored for this version.
 
+Draft status, Save/Validate and Human review/Publish controls sit below Sources/provenance in the left
+column, with save/validation feedback nearby. Both columns belong to the same form: saving validates and
+saves public content and the evaluation package together. Narrow screens stack the columns.
+
 Each Evaluation package subsection starts expanded. Click its heading, or focus it and press Enter/Space,
 to collapse or expand it independently. Collapsing keeps unsaved field contents and does not mark the draft
 as changed. Browser form validation reopens a section containing an invalid input before focusing the field.
