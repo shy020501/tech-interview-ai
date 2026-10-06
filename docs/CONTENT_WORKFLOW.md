@@ -72,6 +72,10 @@ The editor displays **Saved / Unsaved changes** and warns on browser close/reloa
 in-app navigation blocker: save before choosing a different problem/version. Invalid JSON must be corrected
 before saving. No success is shown until the server has accepted the change.
 
+JSON textareas support **Tab** for two-space indentation and **Shift+Tab** for outdent, including selected
+lines. Press **Esc**, then **Tab** or **Shift+Tab**, to move keyboard focus out of the JSON editor. Indentation
+does not repair malformed JSON; close quoted strings and correct brackets/commas before saving.
+
 ## 4. Preview
 
 **Preview as user** opens `/admin/problems/[id]/preview?version=...` in a new tab. It requires admin

@@ -174,6 +174,19 @@ new authenticated end-to-end actions in your own browser; confirmed deletion is 
   read-only navigation and 500px layout. Desktop/mobile screenshots inspected. The isolated fixture simulated
   server responses; no hosted data was changed. No schema, dependencies or milestone changes.
 
+## M3 follow-up — JSON keyboard indentation (2026-10-06)
+
+- JSON fields support Tab for two spaces and Shift+Tab for outdent, including selected lines without
+  replacing selected tokens. Escape followed by Tab/Shift+Tab preserves forward/backward keyboard navigation.
+  Product help explains these shortcuts. Other textareas retain their existing behavior.
+- Indentation uses the same input/validation path as typing. Invalid JSON still blocks saving and corrected
+  JSON clears the error; a collapsed invalid section reopens as before.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
+  `git diff --check`: PASS.
+- Headless Firefox verified caret/selection retention, single/multiline indentation, line-boundary selections,
+  odd-space/tab outdent, Escape navigation, invalid/corrected JSON and mock save/reopen behavior for the actual
+  components. Both completion groups and visualization JSON use the shared control. No hosted data was changed.
+
 ## Still mock / not implemented
 
 - Interview feedback and progress remain explicitly scripted; no personal correctness/rubric judgment.
