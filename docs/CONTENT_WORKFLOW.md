@@ -8,7 +8,8 @@ The normal app uses the publishable key and the signed-in user's session, with n
 
 Open `/admin/sources` as an admin and choose **Add source**. Enter a title, HTTP/HTTPS URL,
 source type, optional category suggestions/score, notes, provenance and usage notes. **Save source**
-persists the record. Select a source title or **Edit** to view/change it; **Reject** changes its status.
+persists the record and closes the form on success. A failed save keeps the form and inputs open.
+**Cancel** closes it without saving. Select a source title or **Edit** to view/change it; **Reject** changes its status.
 
 `usage_status` records an editorial decision (`unknown`, `reference_only`, `approved_for_reuse`).
 A public URL is not evidence of reuse permission. No content is downloaded or copied automatically.
@@ -18,7 +19,8 @@ A public URL is not evidence of reuse permission. No content is downloaded or co
 
 Open `/admin/candidates` and choose **Create candidate**. Select a source or **Original idea — no external source**.
 Write a suggested title, scenario/question, category, type, competencies and difficulty. Scores are optional
-human inputs. Save, edit or reject the candidate; a rejected candidate can return to review.
+human inputs. **Save candidate** closes the form only after a successful save. Failed saves keep inputs
+and the error visible; **Cancel** closes without saving. Edit or reject a candidate; a rejected candidate can return to review.
 
 For a pending candidate, confirm its URL slug and click **Create problem draft**. The source relation,
 scenario/question and classification prefill a new version. The conversion locks the candidate and stores
@@ -27,7 +29,9 @@ records; follow **Review draft** to continue editing their problem.
 
 ## 3. Edit the problem package
 
-`/admin/problems` retains the problem table and two editorial columns. **Create problem draft** also
+`/admin/problems` initially shows the problem table with no draft editor open. Select a title or
+**Edit draft / View version** to open the existing two-column editor. **Close editor** returns to the
+list and asks before discarding unsaved changes. Creating/converting a draft opens it for editing. **Create problem draft** also
 supports a new problem without a candidate. A title and stable lowercase URL slug are required to create it.
 The URL slug is fixed for this milestone. Display text can change independently of IDs.
 
@@ -88,6 +92,24 @@ Past versions stay in history as **Superseded**; they are never removed by this 
 
 **Archive problem** removes it from public discovery/new attempts. Owners retain their saved reviews and
 can finish an existing active interview. Archiving does not erase any attempt or version.
+
+## Deleting sources, candidates and problems
+
+**Delete** permanently removes an item, separately from **Reject** or **Archive**. Every delete asks for
+confirmation and waits for the server; a refused deletion keeps the record and shows its reason.
+
+- **Source:** deletion is blocked while any candidate or any problem version references it. Remove the
+  candidate reference or an editable draft's source link first. Published version links remain immutable;
+  keep their source as provenance while those versions exist.
+- **Candidate:** deletion keeps an already-created problem and its independent source links.
+- **Problem:** deletion removes the whole problem, all its versions, private packages and category/source
+  links only when no interview attempt exists, regardless of attempt status. Source/category records remain.
+  A linked candidate stays and returns to **Pending Review**, allowing a new draft conversion.
+- If any interview exists, use **Archive problem**. Deletion never erases an interview, message or hint event.
+
+Direct deletion of individual published snapshots stays prohibited. Only the validated whole-problem
+operation has this cleanup exception. List deletion of another problem keeps the current editor open;
+deleting the problem currently being edited returns to the list.
 
 ## 7. Categories
 

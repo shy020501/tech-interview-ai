@@ -40,7 +40,20 @@ test('M3 PostgreSQL lifecycle, access boundaries and preserved M2 data', async (
     });
     // Hosted runner does not wrap the migration in a transaction. One prepared
     // statement also catches accidental top-level commands outside the atomic DO.
-    for(const file of migrations.slice(2)) await db.query(await readFile('supabase/migrations/'+file,'utf8'));
+    for(const file of migrations.slice(2)) {
+      const sql=await readFile('supabase/migrations/'+file,'utf8');
+      if(file.endsWith('_m3_editor_deletion.sql')) {
+        await t.test('deletion migration failure rolls back changed foreign keys and new RPCs',async()=>{
+          const failing=sql.replace('end;\n$m3_deletion$;',"raise exception 'Intentional delete migration rollback';\nend;\n$m3_deletion$;");
+          assert.notEqual(failing,sql);
+          await assert.rejects(db.query(failing),/Intentional delete migration rollback/);
+          assert.equal(await scalar("select to_regprocedure('public.admin_delete_problem(text)')"),null);
+          assert.equal(await scalar("select confdeltype from pg_constraint where conname='problem_versions_problem_id_fkey'"),'r');
+          assert.deepEqual(await q('select id,problem_version_id,status from public.attempts where id=$1',[before]),baseline);
+        });
+      }
+      await db.query(sql);
+    }
     await t.test('incremental migration preserves existing attempts and public catalog',async()=>{
       assert.deepEqual(await q('select id,problem_version_id,status from public.attempts where id=$1',[before]),baseline);
       assert.equal(await scalar("select status from public.problem_versions where id='m3-test-preexisting-draft'"),'draft');
@@ -155,6 +168,84 @@ test('M3 PostgreSQL lifecycle, access boundaries and preserved M2 data', async (
       await login(null); assert.equal(await scalar('select count(*)::int from public.problems where id=$1',[problemId]),0);
       await login(bob); assert.equal((await scalar('select public.get_attempt_debrief($1)',[newAttempt])).problemVersionId,v2);
       await rejects('select public.start_interview($1)',[problemId]);
+    });
+    await t.test('deletion RPCs require admin, and direct table deletes remain denied',async()=>{
+      for(const actor of [null,alice]) {
+        await login(actor);
+        await rejects('select public.admin_delete_source($1)',[sourceId],/permission|Administrator/);
+        await rejects('select public.admin_delete_candidate($1)',[candidateId],/permission|Administrator/);
+        await rejects('select public.admin_delete_problem($1)',[problemId],/permission|Administrator/);
+      }
+      await login(admin);
+      for(const table of ['sources','question_candidates','problems','problem_versions','problem_evaluation_packages']) {
+        await rejects(`delete from public.${table} where false`,[],/permission/);
+      }
+    });
+    await t.test('attempted problem deletion is rejected atomically, preserving candidates and interviews',async()=>{
+      await rejects('select public.admin_delete_problem($1)',[problemId],/saved interviews/);
+      assert.equal(await scalar('select converted_problem_id from public.question_candidates where id=$1',[candidateId]),problemId);
+      assert.equal(await scalar('select status from public.question_candidates where id=$1',[candidateId]),'converted_to_problem');
+      assert.equal(await scalar('select count(*)::int from public.problem_versions where problem_id=$1',[problemId]),2);
+      await login(bob);
+      assert.equal(await scalar('select status from public.attempts where id=$1',[newAttempt]),'completed');
+      assert.equal((await scalar('select public.get_attempt_debrief($1)',[newAttempt])).referenceAnswer,pkg.referenceAnswer);
+      await login(alice); assert.equal(await scalar('select status from public.attempts where id=$1',[oldAttempt]),'in_progress');
+      await login(admin);
+    });
+    await t.test('deleting a converted candidate keeps its problem and source provenance',async()=>{
+      await rejects('select public.admin_delete_source($1)',[sourceId],/used by a candidate or problem version/);
+      await q('select public.admin_delete_candidate($1)',[candidateId]);
+      assert.equal(await scalar('select count(*)::int from public.question_candidates where id=$1',[candidateId]),0);
+      assert.equal(await scalar('select count(*)::int from public.problems where id=$1',[problemId]),1);
+      assert.equal(await scalar('select source_id from public.problem_sources where problem_version_id=$1',[v1]),sourceId);
+      // A version reference alone still protects the source after the candidate is gone.
+      await rejects('select public.admin_delete_source($1)',[sourceId],/used by a candidate or problem version/);
+      await rejects('select public.admin_delete_candidate($1)',[candidateId],/not found/);
+    });
+    await t.test('draft deletion removes dependent content, resets its candidate and allows conversion again',async()=>{
+      const sid=await scalar('select public.admin_save_source(null,$1)',[{...source,title:'m3-delete disposable source'}]);
+      const cid=await scalar('select public.admin_save_candidate(null,$1)',[{sourceId:sid,suggestedTitle:'m3-delete disposable candidate',suggestedScenario:content.scenario,suggestedQuestion:content.question,suggestedCategoryIds:content.categoryIds,questionType:content.questionType,competencyIds:content.competencyIds,difficulty:content.difficulty,candidateScore:null,status:'pending_review',notes:''}]);
+      await rejects('select public.admin_delete_source($1)',[sid],/used by a candidate or problem version/);
+      const pid=await scalar("select public.admin_convert_candidate($1,'m3-delete-draft')",[cid]);
+      const vid=await scalar('select current_version_id from public.problems where id=$1',[pid]);
+      await q('select public.admin_delete_problem($1)',[pid]);
+      assert.equal(await scalar('select count(*)::int from public.problems where id=$1',[pid]),0);
+      assert.equal(await scalar('select count(*)::int from public.problem_versions where id=$1',[vid]),0);
+      for(const table of ['problem_evaluation_packages','problem_sources','problem_version_categories']) {
+        assert.equal(await scalar(`select count(*)::int from public.${table} where problem_version_id=$1`,[vid]),0);
+      }
+      assert.equal(await scalar('select count(*)::int from public.problem_categories where problem_id=$1',[pid]),0);
+      assert.deepEqual(await q('select status,converted_problem_id from public.question_candidates where id=$1',[cid]),[{status:'pending_review',converted_problem_id:null}]);
+      assert.equal(await scalar('select count(*)::int from public.sources where id=$1',[sid]),1);
+      const again=await scalar("select public.admin_convert_candidate($1,'m3-delete-draft')",[cid]);
+      assert.notEqual(again,pid);
+      await q('select public.admin_delete_problem($1)',[again]);
+      await q('select public.admin_delete_candidate($1)',[cid]);
+      await q('select public.admin_delete_source($1)',[sid]);
+      assert.equal(await scalar('select count(*)::int from public.sources where id=$1',[sid]),0);
+      await rejects('select public.admin_delete_problem($1)',[again],/not found/);
+      await rejects('select public.admin_delete_source($1)',[sid],/not found/);
+    });
+    await t.test('unattempted published problems can be deleted whole but their snapshots cannot be edited or deleted separately',async()=>{
+      const pid=await scalar("select public.admin_create_problem('m3-delete-published','m3-delete published problem')");
+      const vid=await scalar('select current_version_id from public.problems where id=$1',[pid]);
+      await scalar('select public.admin_save_problem_version($1,1,$2,$3,$4)',[vid,content,pkg,[{sourceId,relationType:'reference',attributionNote:'Test'}]]);
+      await q('select public.admin_publish_version($1,2)',[vid]);
+      const next=await scalar('select public.admin_create_version($1)',[pid]);
+      await q('select public.admin_publish_version($1,1)',[next]);
+      await root();
+      await rejects('delete from public.problem_versions where id=$1',[vid],/immutable/);
+      for(const table of ['problem_evaluation_packages','problem_sources','problem_version_categories']) {
+        await rejects(`delete from public.${table} where problem_version_id=$1`,[vid],/immutable/);
+      }
+      await rejects('update public.problem_evaluation_packages set reference_answer=$1 where problem_version_id=$2',['changed',vid],/immutable/);
+      await login(admin); await q('select public.admin_delete_problem($1)',[pid]);
+      assert.equal(await scalar('select count(*)::int from public.problem_versions where problem_id=$1',[pid]),0);
+      for(const table of ['problem_evaluation_packages','problem_sources','problem_version_categories']) {
+        assert.equal(await scalar(`select count(*)::int from public.${table} where problem_version_id=any($1)`,[[vid,next]]),0);
+      }
+      assert.equal(await scalar('select count(*)::int from public.sources where id=$1',[sourceId]),1);
+      await login(null); assert.equal(await scalar('select count(*)::int from public.problems where id=$1',[pid]),0);
     });
     await t.test('hosted SQL guide assertions run completely and roll back their test records',async()=>{
       await root(); await db.exec(await readFile('supabase/tests/content_workflow.sql','utf8'));

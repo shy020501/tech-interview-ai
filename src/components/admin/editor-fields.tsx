@@ -11,8 +11,8 @@ export function JsonField({label,value,onChange,help}:{label:string;value:unknow
 export function Feedback({result}:{result:MutationResult|null}) {if(!result)return null;return <div role={result.ok?'status':'alert'} className={result.ok?'notice mt-4':'error-text mt-4'}><p>{result.ok?result.message:result.error}</p>{!result.ok&&result.errors&&<ul className="reasoning-list mt-2">{result.errors.map(e=><li key={e}>{e}</li>)}</ul>}{result.ok&&result.warnings&&<ul className="reasoning-list mt-2">{result.warnings.map(w=><li key={w}>{w}</li>)}</ul>}</div>;}
 export function useAdminMutation() {
  const [result,setResult]=useState<MutationResult|null>(null),[pending,start]=useTransition(),router=useRouter();
- const run=(operation:()=>Promise<MutationResult>,done?:(result:Extract<MutationResult,{ok:true}>)=>void)=>{setResult(null);start(async()=>{try{const r=await operation();setResult(r);if(r.ok){done?.(r);router.refresh();}}catch{setResult({ok:false,error:'Unable to save this change. Please reload or try again.'});}});};
- return {result,pending,run};
+ const run=(operation:()=>Promise<MutationResult>,done?:(result:Extract<MutationResult,{ok:true}>)=>void)=>{setResult(null);start(async()=>{try{const r=await operation();setResult(r);if(r.ok){done?.(r);router.refresh();}}catch{setResult({ok:false,error:'Unable to complete this change. Please reload or try again.'});}});};
+ return {result,pending,run,setResult};
 }
 export const formText=(data:FormData,key:string)=>String(data.get(key)??'');
 export const formList=(data:FormData,key:string)=>data.getAll(key).map(String);

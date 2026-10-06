@@ -30,6 +30,9 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      admin_delete_source: { Args: { p_id: string }; Returns: undefined };
+      admin_delete_candidate: { Args: { p_id: string }; Returns: undefined };
+      admin_delete_problem: { Args: { p_problem_id: string }; Returns: undefined };
       admin_save_source: { Args: { p_id: string | null; p_data: Json }; Returns: string };
       admin_save_candidate: { Args: { p_id: string | null; p_data: Json }; Returns: string };
       admin_save_category: { Args: { p_id: string | null; p_data: Json }; Returns: string };

@@ -91,6 +91,32 @@ M2's user-confirmed completion does not substitute for these new M3 checks.
 Detailed steps: [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md). Use archive for test problems with attempts;
 do not reset or delete existing data. Current M3 implementation is complete; the above verification is not claimed complete.
 
+## M3 follow-up — editor visibility and deletion (2026-10-06)
+
+Implemented:
+- Source/candidate successful saves close their forms; errors preserve entered content. Cancel is available.
+- The problem library no longer auto-selects the first problem or loads its private package. Explicit title / Edit
+  draft / View version selection opens the editor. Close editor confirms discarding unsaved changes.
+- Admin-only confirmed deletion for sources, candidates and problems through role-checked, atomic RPCs.
+- Sources with references are protected. Candidate deletion keeps converted problems. Whole problem deletion
+  removes versions/packages/links only without attempts; a linked candidate returns to pending_review.
+- Existing interviews, published snapshot immutability, public/private boundaries, layout and CSS are preserved.
+- New incremental migration: `20261006000300_m3_editor_deletion.sql`; applying it removes no existing rows.
+
+Verification:
+- `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm check:boundaries` and `git diff --check`: PASS.
+- `pnpm test`: PASS, 50 tests. New PostgreSQL coverage includes admin-only delete RPCs, forbidden direct
+  deletes, linked-source protection, candidate/problem independence, candidate reset/reconversion, complete
+  version/package/link cleanup, immutable standalone snapshots and preservation of interviews/debriefs.
+  An injected migration failure also verifies FK/RPC changes roll back atomically.
+- Headless Firefox exercised actual components in an isolated local fixture with simulated server responses:
+  source/candidate add/edit success closes the form, failure preserves inputs, Cancel closes; deletion cancel
+  calls no action, failure preserves the row, success removes it. The real Problem page component makes no
+  detail fetch on its initial list, explicit selection opens it, dirty Close editor asks for confirmation,
+  and deleting the selected problem returns to the list. Screenshots inspected; globals.css remains unchanged.
+- No hosted content was deleted. Hosted authenticated deletion is not claimed tested; its database behavior
+  was exercised only in disposable local PostgreSQL. Migration application is checked after the GitHub push.
+
 ## Still mock / not implemented
 
 - Interview feedback and progress remain explicitly scripted; no personal correctness/rubric judgment.

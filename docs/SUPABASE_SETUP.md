@@ -195,3 +195,13 @@ pnpm check:boundaries
 
 build/정적 경계 검사 통과가 live RLS/Auth/persistence 검증의 대체는 아니다.
 최종 실행 결과와 미검증 항목은 [STATUS](STATUS.md)에 별도로 기록한다.
+
+## M3 editor/delete follow-up migration
+
+`supabase/migrations/20261006000300_m3_editor_deletion.sql`을 기존 M3 migration 다음에 적용한다.
+GitHub/Supabase 연동에서는 해당 commit의 Supabase check가 성공했는지 확인한다. 수동 적용 시에도 파일
+전체를 실행한다. 파일은 단일 atomic DO statement이며 적용 자체는 기존 row를 삭제하지 않는다.
+세 개의 admin delete RPC와 미사용 problem 전체 삭제용 FK/trigger 정책만 추가한다. 추가 env/key는 없다.
+
+실제 삭제는 Admin의 확인 동작 이후에만 수행한다. 인터뷰가 있는 문제와 참조 중인 source는 차단되며,
+candidate 삭제는 연결된 problem을 유지한다. 자세한 영향 범위는 [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md)를 따른다.

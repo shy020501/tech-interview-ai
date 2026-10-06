@@ -14,12 +14,12 @@ function databaseError(error:{code:string;message:string}):never {
  if(error.code==='23503')throw new AuthoringError('A referenced record is missing or still in use.');
  if(error.code==='23514')throw new AuthoringError('This change would break content integrity. Published versions require a new version.');
  if(error.code==='PGRST202'||error.code==='PGRST205')throw new AuthoringError('Content storage is not ready. Apply the M3 migration.');
- throw new Error('Unable to save content.');
+ throw new Error('Unable to change content.');
 }
 async function mutate(operation:()=>Promise<MutationResult>):Promise<MutationResult> {
  await requireAdmin(); // Every exported action reaches this check, including validation-only requests.
  try { const result=await operation(); if(result.ok){revalidatePath('/admin','layout');revalidatePath('/problems','layout');}return result; }
- catch(error){return {ok:false,error:error instanceof AuthoringError?error.message:'Unable to save this change. Please try again.'};}
+ catch(error){return {ok:false,error:error instanceof AuthoringError?error.message:'Unable to complete this change. Please try again.'};}
 }
 export async function saveSource(id:string|null,input:unknown) {return mutate(async()=>{const db=await createClient(),value=parseSource(input);const {data,error}=await db.rpc('admin_save_source',{p_id:id?machineId(id):null,p_data:json(value)});if(error)databaseError(error);return {ok:true,id:data!,message:'Source saved.'};});}
 export async function saveCandidate(id:string|null,input:unknown) {return mutate(async()=>{const db=await createClient(),value=parseCandidate(input);const {data,error}=await db.rpc('admin_save_candidate',{p_id:id?machineId(id):null,p_data:json(value)});if(error)databaseError(error);return {ok:true,id:data!,message:'Candidate saved.'};});}
@@ -45,3 +45,7 @@ export async function saveCategory(id:string|null,input:unknown) {return mutate(
  const db=await createClient();const {data,error}=await db.rpc('admin_save_category',{p_id:id?machineId(id):null,p_data:json(value)});if(error)databaseError(error);return {ok:true,id:data!,message:'Category saved.'};
 });}
 export async function deleteCategory(id:string) {return mutate(async()=>{const db=await createClient();const {error}=await db.rpc('admin_delete_category',{p_id:machineId(id)});if(error)databaseError(error);return {ok:true,message:'Category deleted.'};});}
+
+export async function deleteSource(id:string) {return mutate(async()=>{const db=await createClient();const {error}=await db.rpc('admin_delete_source',{p_id:machineId(id)});if(error)databaseError(error);return {ok:true,message:'Source deleted.'};});}
+export async function deleteCandidate(id:string) {return mutate(async()=>{const db=await createClient();const {error}=await db.rpc('admin_delete_candidate',{p_id:machineId(id)});if(error)databaseError(error);return {ok:true,message:'Candidate deleted. Any linked problem has been kept.'};});}
+export async function deleteProblem(id:string) {return mutate(async()=>{const db=await createClient();const {error}=await db.rpc('admin_delete_problem',{p_problem_id:machineId(id)});if(error)databaseError(error);return {ok:true,message:'Problem deleted.'};});}

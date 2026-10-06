@@ -283,7 +283,7 @@ attempt table들의 직접 INSERT/UPDATE/DELETE 권한은 없다. 대신 아래 
 - problems.current_version_id는 composite FK로 자기 problem의 version만 참조한다.
 - attempts에는 효율적인 resume를 위한 problem_id도 두되 composite FK로 version/problem 일치를 강제한다.
 - 시작 시 current published version에 고정한다. 이후 current_version_id 변경은 기존 attempt를 이동시키지 않는다.
-- published_at이 기록된 version/package와 version category/source 연결은 attempt 유무와 관계없이 DB trigger로 수정/삭제를 막는다.
+- published_at이 기록된 version/package와 version category/source 연결은 attempt 유무와 관계없이 DB trigger로 개별 수정/삭제를 막는다. 아래의 미사용 problem 전체 삭제만 예외다.
 - draft 수정에는 revision 검사를 적용한다. create version/publish는 problem 잠금으로 직렬화하고 활성 draft 하나의 unique index로 중복 생성/번호 충돌을 막는다.
 - 한 문제의 primary category는 DB 부분 unique index로 최대 하나이며 data projection에서 정확히 하나를
   확인한다. draft는 category 없이 저장 가능하며 publish에는 primary 한 개가 필요하다.
@@ -349,6 +349,25 @@ Admin instructions and exact editor behavior are in [CONTENT_WORKFLOW.md](CONTEN
 Schema: the nine M2 tables plus sources, question_candidates, problem_version_categories and problem_sources.
 Text/CHECK constraints remain the enum strategy; structured package/visualization data stays JSONB.
 Source/candidate/profile/private-package SELECT is admin/owner restricted as appropriate, and all 13 tables use RLS.
+
+## Admin editor lifecycle and deletion
+
+Source/candidate forms close only after successful saves and preserve input on validation/network failure.
+Problem detail/package data is fetched only for an explicitly selected problem query; the library does not
+automatically select its first row. Close editor confirms discarding unsaved changes.
+
+`admin_delete_source`, `admin_delete_candidate` and `admin_delete_problem` use the same requireAdmin action
+and database-role RPC checks as other mutations. Table DELETE privileges remain revoked. Each delete is atomic.
+Source FKs stay RESTRICT; references from any candidate or version block source removal. Deleting a candidate
+does not remove its problem. A whole problem can be deleted only without any attempts: a parent lock serializes
+against start_interview, and attempt FKs remain RESTRICT as a second guard. Version/package/membership/source-link
+FKs cascade only inside whole-problem cleanup. A converted candidate is preserved and reset to pending_review.
+
+The immutability trigger permits cascading DELETE only after the parent identity is gone and no attempt refers
+to the version. It has no client-settable bypass flag. Standalone published snapshot edits/deletes remain blocked.
+All migration changes are incremental; applying `20261006000300_m3_editor_deletion.sql` removes no existing data.
+Sources, categories and interviews never cascade out of a problem deletion. Archive remains the removal option
+for published problems with saved history.
 
 ## 검증 범위
 
