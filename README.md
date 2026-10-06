@@ -7,6 +7,7 @@ Advanced / Scenario-based 질문을 핵심 콘텐츠로 한다.
 기존 UI 스타일을 보존하고 데이터 저장/인증 계층을 연결했다. 실제 LLM/crawling/웹서비스 배포는 없다.
 GitHub integration으로 Supabase schema와 초기 catalog를 적용했고 공개 문제 조회를 확인했다.
 사용자가 가입 메일 수신과 로그인된 인터뷰의 메시지/힌트 저장, 새로고침 복원을 확인했다.
+일반 계정의 `/admin` 접근 차단과 첫 관리자 지정 안내 후 Admin/Categories/Problems 화면 열람도 확인했다.
 남은 Auth/admin/사용자 간 격리 검증은 [현재 상태](docs/STATUS.md)에 구분해 기록한다.
 다음 확인 순서는 [Supabase 설정 안내](docs/SUPABASE_SETUP.md)의 Admin/RLS/브라우저 검증을 따른다.
 새 Supabase 프로젝트를 연결하는 경우에는 해당 문서의 migration 설정도 필요하다.
