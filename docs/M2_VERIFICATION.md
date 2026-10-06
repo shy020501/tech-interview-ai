@@ -1,6 +1,7 @@
 # M2 — remaining authenticated verification
 
-현재 남은 핵심 검증은 실제 Auth 세션의 HTTP 접근 경계와 로그인된 사용자 응답의 비공개 데이터 부재다.
+이 안내는 실제 Auth 세션의 HTTP 접근 경계와 로그인된 사용자 응답의 비공개 데이터 부재를 검사한다.
+2026-10-06 사용자가 1~3번에 이상이 없다고 보고했다. 현재 남은 핵심 검증은 4번의 응답 본문 확인이다.
 이미 통과한 SQL role/claim 검사를 반복할 필요는 없다. 아래 절차의 실제 결과는 STATUS에 따로 기록한다.
 검증 명령이나 이 안내가 존재한다는 사실을 hosted 검증 성공으로 기록하지 않는다.
 
@@ -93,6 +94,13 @@ Chrome/Edge 기준이다. A 창의 Admin Problems에서 드론 문제를 선택�
 7. Finish 후 `/review?attempt=...` 응답도 확인한다. M2는 review에서도 정답을 공개하지 않는다.
 
 각 Response에서 위 비공개 문장과 다음 필드들을 검색한다. JSON camelCase와 DB snake_case 둘 다 살핀다.
+
+Network 목록의 **Name 열에 있는 요청 이름**을 클릭하면 오른쪽 또는 아래에 상세 영역이 열린다.
+여기서 **Response(응답)** 탭을 선택한다. 긴 문자열/숫자/기호가 섞인 RSC 본문도 정상적인 응답 형식이다.
+본문 안을 클릭한 뒤 Ctrl+F(Mac은 Cmd+F)로 검색한다. 목록의 Filter 입력란은 응답 내용 검색이 아니다.
+예를 들어 `drone-dynamics-adaptation?_rsc=...`를 클릭하여 문제 페이지의 RSC 응답부터 확인할 수 있다.
+제공된 스크린샷처럼 Type이 fetch인 요청만 보이면, **All**을 선택하고 필터를 비운 뒤 문제 페이지를
+새로고침해 Type이 document인 초기 HTML 요청도 확인한다. 요청의 HTTP 200/304만으로 검사를 통과시키지 않는다.
 
 ```text
 referenceAnswer / reference_answer

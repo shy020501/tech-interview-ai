@@ -2,7 +2,7 @@
 
 Current milestone: **M2**
 
-Status: **Core M2 browser flows and hosted RLS SQL checks confirmed by user**
+Status: **M2 core flows, RLS SQL and authenticated read/route checks confirmed by user; response inspection pending**
 
 Last updated: 2026-10-06 (Asia/Seoul)
 
@@ -17,7 +17,9 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 이는 사용자 보고이며 자동화된 계정 검증과 구분한다.
 이어 사용자가 hosted SQL Editor에서 RLS 검사 실행 후 오류 없이 finish_interview/UUID 결과가 나왔다고 보고했다.
 준비된 SQL의 DB role/claim 기반 격리·권한 검사는 사용자 실행 기준 통과로 기록한다.
-실제 Auth 세션별 HTTP 검증 등 아래 미검증 항목은 별도로 남아 있으며 M3는 미착수다.
+이후 사용자가 M2_VERIFICATION의 1~3번(계정 준비, 실제 Auth Data API SELECT, 앱 route 경계)에
+이상이 없다고 보고했다. 4번은 Network 요청 목록만 제공되어 응답 본문의 비공개 데이터 부재는
+아직 확인하지 못했다. 아래 미검증 항목은 별도로 남아 있으며 M3는 미착수다.
 
 ## Completed — repository implementation
 
@@ -43,24 +45,26 @@ category 9개와 published 문제/version 3개를 확인했다. 익명 private/p
 - 로그인된 상태에서 대표 드론 문제의 Start interview, 메시지 전송, Hint 요청을 확인했다.
 - 새로고침 후 대화와 사용한 힌트가 복원되는 것을 확인했다.
 - 일반 계정으로 `/admin`에 접속하면 “This page is not available.”가 표시되는 것을 확인했다.
-  이 결과를 모든 Admin 하위 route나 private table의 직접 접근 검증으로 확대하지 않는다.
+  최초 보고는 이 route만 대상으로 했으며, 이후 하위 route 검사는 아래 1~3번 보고로 구분한다.
 - 첫 관리자 지정 안내 이후 같은 계정에서 `/admin`, `/admin/categories`, `/admin/problems`가 열리는 것을 확인했다.
 - 관리자 Problems에서 드론 문제의 Evaluation package 안에 reference answer와 reasoning rubric이 보이는 것을 확인했다.
 - Finish interview 후 본인의 저장된 대화와 사용한 힌트가 review에 표시되는 것을 확인했다.
 - Sign out 후 다시 로그인해도 `/review`의 완료 기록이 유지되는 것을 확인했다.
 - `supabase/tests/rls.sql` 전체 실행 안내 후 오류 없이 finish_interview/UUID 결과가 표시됐다고 보고했다.
   준비된 anon/user A/user B/admin SQL assertion 통과로 기록하며 실제 Auth 토큰을 사용한 HTTP 테스트와 구분한다.
-- 브라우저와 SQL Editor의 사용자 확인 결과다. Codex가 사용자 credential을 받아 해당 실행을 재현한 것은 아니다.
+- `M2_VERIFICATION.md`의 1~3번에 이상이 없다고 보고했다. 안내한 A(admin)/B(user)의 실제 Auth
+  Data API SELECT 검사, 상호 타인 review 접근 차단, B의 Admin 6개 route 차단을 사용자 확인으로 기록한다.
+  CLI 상세 출력이나 브라우저 응답 본문을 Codex가 직접 검토한 결과는 아니다.
+- 브라우저, CLI와 SQL Editor의 사용자 확인 결과다. Codex가 사용자 credential을 받아 해당 실행을 재현한 것은 아니다.
 
 ## Not yet verified against hosted Supabase
 
-- 만료된 session의 자동 refresh
-- 로그인된 일반 계정의 Admin 하위 route 차단 및 실제 Auth 토큰을 사용한 private package Data API 접근 차단
-- 서로 다른 실제 Auth 세션의 브라우저/HTTP 데이터 격리 (DB role/claim 기반 SQL 격리 검사는 사용자 실행 기준 통과)
-- 로그인된 인터뷰의 실제 HTML/RSC payload 검사와 동시 요청 검증
+- 로그인된 인터뷰의 실제 HTML/RSC/Server Action/Review 응답 본문 검사 (M2_VERIFICATION 4번)
+  제공된 Network 스크린샷은 요청 이름/상태/크기만 보여 준다. HTTP 200/304만으로 데이터 부재를 판정하지 않는다.
+- 만료된 session의 자동 refresh와 동시 요청 검증 (별도 안정성 검증)
 
 익명 Data API/페이지 경계, 로컬 SQL role 검사와 사용자 실행 hosted SQL 검사는 완료했다.
-위 항목은 해당 결과와 구분한다.
+실제 Auth Data API SELECT와 앱 route 경계도 사용자 보고 기준으로 확인했으며, 위 항목과 구분한다.
 실행 순서는 [SUPABASE_SETUP.md](SUPABASE_SETUP.md)를 따른다.
 남은 실제 계정 검사의 명령과 성공 기준은 [M2_VERIFICATION.md](M2_VERIFICATION.md)에 정리했다.
 
@@ -194,7 +198,10 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 - `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm check:boundaries` 성공. 경계 검사는 client 9/browser chunk 15/static HTML 3개다.
 - CLI를 실제 PTY에서 열어 비밀번호 입력 문자가 출력되지 않는지 확인했다. 제출 전 Ctrl+C로 취소했으며 Auth 요청은 보내지 않았다.
 - 비대화형 실행은 설명과 exit 1로 차단됨을 확인했다. 테스트 실행에는 실제 계정 비밀번호/토큰을 사용하지 않았다.
-- 실제 계정으로 `pnpm verify:access`를 끝까지 실행하거나 로그인된 브라우저 응답을 검사한 것은 아니다. 위 미검증 목록은 유지한다.
+- 도구를 추가할 당시 Codex가 실제 계정으로 `pnpm verify:access`를 끝까지 실행하거나 로그인된 브라우저 응답을 검사한 것은 아니다.
+  이후 사용자의 1~3번 확인 보고는 위 Confirmed by user에 기록했다. 4번 응답 본문 검사는 계속 미확인이다.
+- 이번 후속 작업은 검증 상태와 Network 사용 안내 문서만 수정했다. `git diff --check`를 실행하며
+  lint/typecheck/test/build는 다시 실행하지 않는다. UI, DB, Auth 설정과 기존 개발 서버는 변경하지 않는다.
 
 ## UI regression scope
 
@@ -213,7 +220,7 @@ build는 기존 도구 sandbox의 내부 socket 제한을 피하기 위해 권�
 
 **M3 — Admin content lifecycle and problem package management**
 
-- 남은 실제 Auth 세션의 HTTP 격리/session refresh/payload 검증 범위를 확인한다.
+- 남은 로그인 응답 본문 검사를 마무리하고 session refresh/동시성의 별도 안정성 검증 범위를 확인한다.
 - DB-backed category/problem version 편집과 private package 검수 흐름을 설계한다.
 - draft → review → human-approved publish와 변경 이력을 구현한다.
 - 현재 source/candidate demo와 실제 관리 workflow의 경계를 정리한다.

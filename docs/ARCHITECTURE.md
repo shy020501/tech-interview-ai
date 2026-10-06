@@ -332,9 +332,12 @@ logout/재로그인 후 완료 기록 유지도 사용자가 확인했다.
 hosted SQL Editor의 RLS 검사도 오류 없이 finish_interview/UUID 결과가 나왔다는 사용자 보고로 통과 기록했다.
 이는 DB role/claim을 전환하는 synthetic 사용자 검사이며 실제 Auth 토큰을 사용하는 HTTP 검사와 구분한다.
 Codex의 후속 공개 Data API 조회에서는 category 9개/problem 3개와 공개 테스트 행 부재를 확인했다.
-실제 Auth 세션 간 HTTP 격리, private table Data API 접근 차단, session 만료/refresh와 동시성 검증은 남아 있다.
+이후 사용자가 M2_VERIFICATION 1~3번에 이상이 없다고 보고했다. 실제 Auth 세션의 Data API SELECT 격리,
+private package 접근 차단, 상호 review 접근 차단과 일반 계정의 Admin 6개 route 거절은 사용자 확인으로 기록한다.
+Network 요청 목록 스크린샷은 응답 본문을 보여 주지 않으므로 로그인된 payload 검사는 여전히 미확인이다.
+session 만료/refresh와 동시성도 별도 안정성 검증으로 남아 있다.
 로컬 lint/typecheck/test/build와 bundle/import 경계 검사는 실제 실행 결과를 STATUS에 기록한다.
-로그인된 동적 인터뷰 HTML/RSC와 실제 Auth 세션 간 HTTP 격리는 별도 검증 항목이다.
+로그인된 동적 인터뷰 HTML/RSC/Server Action/Review 응답 본문은 별도 검증 항목이다.
 `pnpm verify:access`는 두 실제 Auth 세션의 Data API SELECT 경계를 검사하는 로컬 CLI다.
 기존 SDK와 publishable key만 사용하며 인증 정보는 메모리에 두고 명령의 세션만 local sign-out한다.
 본인 데이터와 admin의 실제 package 조회를 먼저 확인하여 만료 세션/빈 자료를 통과로 오인하지 않는다.

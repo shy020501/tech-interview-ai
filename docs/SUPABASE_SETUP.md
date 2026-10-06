@@ -7,8 +7,8 @@ Supabase check 성공과 실제 공개 category 9개/published 문제 3개 조�
 `/admin`, `/admin/categories`, `/admin/problems` 화면 열람도 사용자 확인이 끝났다.
 관리자 드론 문제의 정답/rubric 열람, Finish 후 대화·힌트 review, Sign out/재로그인 후 완료 기록 유지도 확인했다.
 hosted SQL Editor의 RLS 검사도 사용자 실행 기준 통과로 기록했다. 공개 Data API에서 category 9개/problem 3개와
-공개 테스트 행 부재를 추가 확인했다. 실제 Auth 세션의 HTTP 격리, session refresh와 로그인된 payload 등은
-**STATUS의 미검증 목록을 따른다.**
+공개 테스트 행 부재를 추가 확인했다. 이후 두 실제 계정의 Data API SELECT/앱 route 경계도 사용자 확인으로 기록했다.
+로그인된 응답 본문 검사, session refresh와 동시성은 **STATUS의 미검증 목록을 따른다.**
 기존 migration을 SQL editor에서 다시 실행할 필요가 없다. 실제 검증 결과는 STATUS에 기록한다.
 
 ## 1. Project와 환경 변수

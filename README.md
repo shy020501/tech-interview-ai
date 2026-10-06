@@ -9,10 +9,10 @@ GitHub integration으로 Supabase schema와 초기 catalog를 적용했고 공�
 사용자가 가입 메일 수신과 로그인된 인터뷰의 메시지/힌트 저장, 새로고침 복원을 확인했다.
 일반 계정의 `/admin` 접근 차단과 첫 관리자 지정 안내 후 Admin/Categories/Problems 화면 열람도 확인했다.
 관리자의 정답/rubric 열람, 인터뷰 완료 review, logout/재로그인 후 완료 기록 유지도 사용자 확인이 끝났다.
-hosted SQL Editor의 RLS 검사도 사용자 실행 기준 통과로 기록했다. 실제 Auth 세션의 HTTP 격리/session 등
-미검증 범위는 [현재 상태](docs/STATUS.md)에 구분해 기록한다.
-다음 확인 순서는 [M2 검증 절차](docs/M2_VERIFICATION.md)의 두 계정 Data API/route/응답 검사를 따른다.
-새 Supabase 프로젝트를 연결하는 경우에는 해당 문서의 migration 설정도 필요하다.
+hosted SQL Editor의 RLS 검사와 두 실제 계정의 Data API SELECT/앱 route 경계도 사용자 확인 기준 통과로 기록했다.
+로그인된 응답 본문 검사 등 미검증 범위는 [현재 상태](docs/STATUS.md)에 구분해 기록한다.
+다음 확인은 [M2 검증 절차](docs/M2_VERIFICATION.md)의 4번 Network 응답 본문 검사다.
+새 Supabase 프로젝트를 연결하는 경우에는 [Supabase 설정](docs/SUPABASE_SETUP.md)의 migration 적용도 필요하다.
 
 ## 개발 환경
 
