@@ -2,7 +2,7 @@
 
 Current milestone: **M4-B**
 
-Status: **M4-B implementation and disposable-PostgreSQL/mock runtime tests pass. A four-message real-provider smoke passed. Hosted Supabase migration/capability activation and browser verification are still pending. Production build/dev server are blocked by this execution environment's port-binding restriction.**
+Status: **M4-B code and both migrations are pushed to main. The Supabase check succeeded; hosted read-only checks confirm difficulty-only public data and protected assessment tables. Runtime capability registration and authenticated browser verification remain unverified. Production build/dev server are blocked by this execution environment's port-binding restriction.**
 
 Verification date: 2026-10-07 Asia/Seoul (smoke artifact timestamp uses 2026-10-06 UTC).
 M4-A implementation/results and unresolved label/holdout review: [M4A_STATUS](history/M4A_STATUS.md).
@@ -11,22 +11,28 @@ Existing user-edited layout, stylesheet, navigation, category/problem catalog an
 
 ## Push status — 2026-10-07
 
-The user asked whether the pending work can be applied and pushed after the classification change.
-The pending submission includes the M4-A engine/benchmarks, M4-B runtime and difficulty-only follow-up.
+The user explicitly approved pushing commit `20a7b35` and applying the two migrations after the
+initial automatic-approval rejection. The commit was pushed to `origin/main` successfully. It includes
+the M4-A engine/benchmarks, M4-B runtime and difficulty-only follow-up.
 `origin/main` was checked remotely at `a1c6435`; there were no intervening remote commits.
 GitHub's preceding Supabase Preview check succeeded. Schema changes use that existing integration.
+
+Commit `20a7b35`'s **Supabase Preview** check completed successfully at `2026-10-07T02:10:54Z`
+(11:10:54 Asia/Seoul). The M4-B and question-type-removal migrations were submitted together through
+the existing integration. No schema SQL was manually replayed and no reset/seed was run.
 
 - Re-ran lint, typecheck, all 143 tests and source-boundary checks: PASS. No paid API calls.
 - Scanned the 155 tracked/unignored files against locally configured secret values: no matches.
   `.env.local`, evaluator artifacts and local profile overrides remain ignored.
 - Production build still fails at Turbopack worker port binding, including an escalated retry.
   This is not recorded as a successful build or browser check.
-- No direct database administration credential is available. Hosted migration outcomes must be checked
-  after push; runtime capability registration is a separate trusted SQL operation, not a schema migration.
-- A local commit was prepared. Automatic approval review rejected `git push origin main` before execution:
-  the 92-file submission and two hosted migrations require explicit approval of that scope, and a successful
-  build has not been verified. No remote push or hosted database change occurred. Awaiting explicit approval;
-  the rejection will not be bypassed through a different transport or branch.
+- Read-only checks against the configured hosted Supabase project: public category and version/difficulty
+  reads return HTTP 200; querying the retired `question_type` returns PostgreSQL `42703` (column absent).
+  Anonymous reads of both new assessment tables return HTTP 401 / `42501` (permission denied).
+  These checks do not replace authenticated ownership/RLS or browser flow verification.
+- No direct database administration credential is available. Runtime capability registration is a
+  separate trusted SQL operation, not a schema migration. The ignored generated setup SQL matches
+  the local secret and does not contain its raw value; it has not been applied by this agent.
 
 ## Follow-up: difficulty-only classification — 2026-10-07
 
@@ -60,8 +66,8 @@ Current follow-up verification:
 
 The user reported a successful full boundary check before this follow-up (17 client graphs, 19 browser
 chunks, 3 static public HTML files). That result does not validate assets generated from these new changes.
-No commit/push/hosted migration was performed. Candidate/Draft saves and publication with the new app
-require the new migration through the existing GitHub → Supabase path; do not reset or re-seed the DB.
+No commit/push/hosted migration was performed during the initial classification implementation.
+The later approved push and hosted observations are recorded above; do not reset or re-seed the DB.
 After applying it, check the difficulty filter, candidate create/edit, Draft save/publish, User detail and
 Admin preview at `http://localhost:3001`, then rerun build and full generated-asset boundary checks.
 
@@ -89,7 +95,7 @@ Admin preview at `http://localhost:3001`, then rerun build and full generated-as
   Both user session and a limited server capability are required; no Supabase service-role key is introduced.
 - Setup helper, explicit four-case live smoke helper, env template, architecture/evaluator/setup/manual-check docs.
 
-## Executed verification
+## Initial implementation verification (before the approved push)
 
 | Command / check | Result |
 | --- | --- |
@@ -128,17 +134,20 @@ Real-provider smoke artifact (gitignored):
 
 ## Activation still required
 
-1. Review/apply `20261006000400_m4b_live_evaluation.sql` using the existing GitHub → Supabase migration path.
-   No migration commit/push/hosted apply was performed in this turn. Do not reset or re-seed the existing DB.
-2. Local `pnpm eval:setup live` is already complete. It preserved existing Supabase/provider entries and generated the capability plus hash-only SQL. On a new environment, run it there before registering that environment’s hash.
-3. After migration, apply generated `artifacts/evals/setup/runtime-capability.sql` through trusted SQL, then
+The M4-B and difficulty-only migrations have been pushed and the Supabase check passed. Do not replay
+those schema files, reset or re-seed the existing DB.
+
+1. Local `pnpm eval:setup live` is already complete. It preserved existing Supabase/provider entries and generated the capability plus hash-only SQL. On a new environment, run it there before registering that environment’s hash.
+2. If not already registered, apply generated `artifacts/evals/setup/runtime-capability.sql` through trusted SQL, then
    restart dev. The hash-only configuration is separate from schema migration history. Real keys are never pasted.
-4. Run build/bundle checks from the user's normal terminal, then the User/Admin/Network checks in
-   [M4B_VERIFICATION](M4B_VERIFICATION.md). Ignored `.env.local` now has explicit live mode and a server capability; hosted registration remains pending. Neither secret values nor provider keys were printed.
+3. Run build/bundle checks from the user's normal terminal, then the User/Admin/Network checks in
+   [M4B_VERIFICATION](M4B_VERIFICATION.md). Ignored `.env.local` now has explicit live mode and a server capability;
+   hosted registration was not performed or verified by this agent. Neither secret values nor provider keys were printed.
 
 ## Known limitations / not implemented
 
-- No hosted migration, browser Auth/UI rendering, dynamic payload or full production build verification in this environment.
+- Hosted migration check and limited read-only schema checks passed as recorded above. Authenticated browser
+  Auth/UI rendering, dynamic interview payload and full production build verification remain incomplete.
 - Benchmarks still need human ground-truth review and held-out quality evaluation. M4-B adds no automatic model selection.
 - Clarification repeats public assumptions conservatively; no newly generated condition or fine-grained assumption matching.
 - No exactly-once remote billing after process crashes; reserved stale calls can retain unknown usage/cost.
