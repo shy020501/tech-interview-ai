@@ -90,3 +90,21 @@ pnpm eval:smoke --plan
 `pnpm eval:smoke --live`만 별도 유료 호출이다: synthetic 4개, escalation 포함 최대 8요청,
 동시성 1, retry 0. 임시 PostgreSQL이므로 hosted 데이터는 변경하지 않는다.
 기존 offline benchmark CLI와 calibration/holdout 정책도 유지된다.
+
+## 7. Admin Test follow-up
+
+`20261007000200_admin_test_workspace.sql` 적용 후 기존 Admin 계정으로 `/admin/test`를 연다.
+새 capability, 새 provider key, DB reset은 필요 없다. Live mode에서 Send/Retry는 실제 유료 평가다.
+
+1. 07 Test에서 발행된 문제 선택 → Start test → reasoning 입력. 기존 evaluator feedback/progress/hint가 동작한다.
+2. 새로고침/다른 문제 선택 후 돌아오면 해당 문제의 동일한 테스트 회차가 복원된다.
+3. Reset conversation → 메시지 없음, progress 0, hints used 0. User Practice의 동일 문제 회차는 유지된다.
+4. 평가가 진행 중일 때도 Reset 가능. 늦게 도착한 결과가 새 회차의 메시지/progress를 바꾸면 안 된다.
+5. View test evaluations → 06 Evaluations에서 Admin Test 필터와 각 평가의 Admin Test 태그를 확인한다.
+   Reset 이전 평가도 남는다. User UI에서 만든 답변은 Admin 계정이어도 User Practice로 표시된다.
+6. 다른 Admin/일반 User는 타인의 테스트 회차를 reset하거나 평가할 수 없다. 일반 User의 `/admin/test` 접근은 차단된다.
+7. 새 version을 발행한 뒤 기존 test는 예전 version으로 resume되고 Reset 후 새 published version을 사용한다.
+
+Reset은 기록 삭제가 아닌 새 테스트 회차 생성이다. 서버에 이미 전송한 provider 요청은 취소/환불을
+보장하지 않으며 중단된 관측은 `admin_test_reset`, usage/cost unavailable로 기록될 수 있다.
+회차를 reset해도 계정 단위 호출 제한/쿼터는 유지된다. Draft는 기존 Preview as User에서 확인한다.

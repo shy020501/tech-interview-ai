@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth/session';
 import type { AttemptSession } from '@/types/attempt';
 import type { MessageRow } from '@/types/database';
 import { validUuid } from '@/lib/auth/validation';
+import { readWithOriginFallback } from './attempt-origin';
 
 const columns = 'id, problem_id, problem_version_id, status, started_at, completed_at, progress, core_complete, evaluation_mode' as const;
 export async function getAttempt(id: string): Promise<AttemptSession | null> {
@@ -40,14 +41,22 @@ export async function getAttempt(id: string): Promise<AttemptSession | null> {
 export async function getActiveAttempt(problemId: string) {
   const user = await requireUser();
   const supabase = await createClient();
-  const { data, error } = await supabase.from('attempts').select('id').eq('user_id', user.id).eq('problem_id', problemId).eq('status', 'in_progress').order('started_at', { ascending: false }).limit(1).maybeSingle();
+  const { result: { data, error } } = await readWithOriginFallback('attempts', withOrigin => {
+    let query = supabase.from('attempts').select('id').eq('user_id', user.id).eq('problem_id', problemId);
+    if (withOrigin) query = query.eq('origin', 'practice');
+    return query.eq('status', 'in_progress').order('started_at', { ascending: false }).limit(1).maybeSingle();
+  });
   if (error) throw new Error('Unable to resume the interview.');
   return data ? getAttempt(data.id) : null;
 }
 export async function getCompletedAttempts() {
   const user = await requireUser('/review');
   const supabase = await createClient();
-  const { data, error } = await supabase.from('attempts').select(columns).eq('user_id', user.id).eq('status', 'completed').order('completed_at', { ascending: false }).limit(20);
+  const { result: { data, error } } = await readWithOriginFallback('attempts', withOrigin => {
+    let query = supabase.from('attempts').select(columns).eq('user_id', user.id);
+    if (withOrigin) query = query.eq('origin', 'practice');
+    return query.eq('status', 'completed').order('completed_at', { ascending: false }).limit(20);
+  });
   if (error) throw new Error('Unable to load interview history.');
   if (!data.length) return [];
   const { data: versions, error: versionError } = await supabase.from('problem_versions').select('id, title, version_number').in('id', data.map((item) => item.problem_version_id));

@@ -55,6 +55,18 @@ M4-B evaluator 전용 RPC는 별도의 `EVALUATOR_RUNTIME_SECRET` capability를 
 4. `supabase/migrations/20261006000300_m3_editor_deletion.sql`: 사용 중인 콘텐츠를 보호하는 Admin 삭제 RPC.
 5. `supabase/migrations/20261006000400_m4b_live_evaluation.sql`: 평가 claim/log/QA, quota/order, capability 검증, adaptive hint와 완료 review 기반.
 6. `supabase/migrations/20261007000100_remove_question_type.sql`: Question Type 컬럼 제거, 난이도 기반 candidate/draft/version/publish RPC로 교체.
+7. `supabase/migrations/20261007000200_admin_test_workspace.sql`: Admin Test 회차 분리, 생성/reset RPC, 평가 출처 태그와 권한 검사. 기존 대화/평가 데이터는 보존한다.
+
+Admin Test 후속 UI에는 7번 migration이 필요하다. 기존 GitHub migration 경로로 적용하며,
+schema SQL을 Dashboard에 중복 실행하거나 초기 seed를 재실행하지 않는다. 기존 runtime capability와
+provider 설정을 그대로 사용하므로 API key/해시를 다시 만들 필요가 없다. 적용 여부와 검증 상태는 STATUS를 따른다.
+
+`/admin/test` 또는 `/admin/evals`에 **Admin Test setup required**가 표시되면
+`20261007000200_admin_test_workspace.sql`의 적용 여부를 확인한다. 이 migration은
+`attempts.origin`, `message_evaluations.origin`과 test 생성/reset RPC를 추가한다.
+미적용 상태에서는 기존 Evaluation 기록과 일반 연습 조회를 유지하고 Test 시작은 제공하지 않는다.
+GitHub → Supabase migration 적용이 완료되면 페이지를 새로고침한다. `.env.local` 변경이나
+API key 재발급으로 해결할 오류가 아니며, 기존 M4-B migration을 다시 실행하지 않는다.
 
 Question Type 제거 migration은 `problem_versions`와 `question_candidates`의 기존 유형 값만
 삭제한다. 난이도, 문제 본문/ID, published version, private package, attempt와 메시지/힌트는

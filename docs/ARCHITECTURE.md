@@ -16,7 +16,7 @@ route와 책임을 나눈다.
 | 영역 | 목표 routes | 역할 |
 | --- | --- | --- |
 | User | `/` → `/problems`, `/problems`, `/problems/[slug]`, `/review` | 문제 선택, 연습, 종료 후 복습 |
-| Admin | `/admin`, `/admin/sources`, `/admin/candidates`, `/admin/problems`, `/admin/categories`, `/admin/evals` | 콘텐츠 제작, 검수, publish, evaluator 품질 확인 |
+| Admin | `/admin`, `/admin/sources`, `/admin/candidates`, `/admin/problems`, `/admin/categories`, `/admin/evals`, `/admin/test` | 콘텐츠 제작, 검수, publish, evaluator 품질 확인 및 수동 테스트 |
 
 사용자는 category/difficulty로 문제를 선택하고 문제와 visualization을 본다.
 reasoning을 채팅으로 입력하고 progress를 확인하며 필요할 때 Hint를 요청한다.
@@ -497,3 +497,39 @@ and no live quality improvement is inferred from offline fixture playback. See [
 Detailed config defaults, quota meaning, setup/rotation, retry failure limits, logging and test workflow are in
 [EVALUATOR](EVALUATOR.md). Hosted migration/browser verification is separate from disposable PostgreSQL tests;
 actual execution evidence and limitations are recorded in [STATUS](STATUS.md).
+
+## Admin Test workspace
+
+The Admin Test migration must precede test-session creation. During local code/schema skew,
+an exact PostgreSQL missing-`origin` error permits legacy practice reads for Evaluation QA and
+practice resume/history. Other errors still fail normally. The Test page shows a setup notice and
+does not substitute a practice attempt. QA disables source filtering until the column exists.
+Schema availability is checked on each request, so applying the migration takes effect on reload.
+
+`/admin/test` reuses the public problem presentation and InterviewChat, including the same evaluator,
+controlled feedback, progress, adaptive hints, failure/retry and account usage limits. It selects published
+problems; draft preview remains read-only so testing cannot accidentally freeze an editable draft.
+The selected problem's current published version is pinned on Start test. Reloading or returning to the
+problem resumes that admin's active test; Reset starts against the current published version.
+
+`attempts.origin` distinguishes `practice` and `admin_test`, with one active attempt per owner/problem/origin.
+The normal start/resume/history queries explicitly use `practice`. The origin is not inferred from the
+account role: an admin practicing in the User UI still produces normal practice records. A database trigger
+copies origin into each message_evaluations row; QA displays Admin Test badges and a separate source filter.
+Existing records default to practice; their original source is not guessed retroactively.
+
+The admin-only session POST checks browser Origin/Host and calls `admin_start_test`, whose database role
+and ownership checks guard both creation and reset. This small HTTP handler allows reset while a chat
+Server Action is waiting for a provider; message evaluation still uses the existing attempt-scoped action.
+Only public problem content and AttemptSession are returned. No private package is added to the test client.
+
+Reset locks the profile/attempt, abandons the old test, invalidates pending claims and creates a fresh attempt
+atomically. A request UUID and stale-tab check prevent duplicate resets from clearing the new conversation.
+Previous messages/hints/assessments remain in QA; no conversation is deleted. Client session generations
+also discard late responses. A provider call already sent cannot be recalled; canceled in-flight observations
+are marked `admin_test_reset` with unavailable usage/cost rather than fabricated zero cost.
+
+The existing evaluator RPC implementation lives in an unexposed, non-executable private core, behind its
+same public signature plus an admin-origin guard. User session, ownership and server capability still apply;
+a revoked admin cannot evaluate test sessions. Daily/account rate and request budgets survive reset.
+This is an incremental M4-B follow-up, not a new evaluator, authoring workflow or deployment change.

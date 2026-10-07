@@ -2,12 +2,71 @@
 
 Current milestone: **M4-B**
 
-Status: **M4-B code and both migrations are pushed to main. The Supabase check succeeded; hosted read-only checks confirm difficulty-only public data and protected assessment tables. Runtime capability registration and authenticated browser verification remain unverified. Production build/dev server are blocked by this execution environment's port-binding restriction.**
+Status: **The earlier M4-B and difficulty-only changes are pushed; the Admin Test follow-up is implemented locally and awaits its new migration. No follow-up push or hosted DB change has been made. Authenticated browser verification remains unverified. Production build/dev server are blocked by this execution environment's port-binding restriction.**
 
 Verification date: 2026-10-07 Asia/Seoul (smoke artifact timestamp uses 2026-10-06 UTC).
 M4-A implementation/results and unresolved label/holdout review: [M4A_STATUS](history/M4A_STATUS.md).
 Prior milestones: [M3_STATUS](history/M3_STATUS.md), [M2_STATUS](history/M2_STATUS.md).
 Existing user-edited layout, stylesheet, navigation, category/problem catalog and authoring workflow are retained.
+
+## Follow-up: Admin Test workspace — 2026-10-07
+
+- Added **07 Test** (`/admin/test`): published problem selection, public scenario/assumptions/visualization,
+  shared InterviewChat, live/mock feedback/progress, hints and failed-evaluation retry. No separate evaluator.
+- Tests have their own saved attempts. The same admin's User Practice session/history is separate and unaffected.
+  Existing test sessions resume at their pinned version; Reset uses the current published version.
+- Reset is available during evaluation. It atomically abandons the previous test and creates an empty one,
+  preserving messages/hints/QA records. Request UUIDs, profile locks and invalidated claims prevent duplicate
+  resets and late results from mutating the replacement conversation. In-flight remote calls may still bill;
+  canceled observations retain unavailable usage/cost rather than an invented zero.
+- **06 Evaluations** shows an **Admin Test** badge, response label and source filter. Origin is derived from
+  the persisted attempt in the DB, not from account role or a client-supplied tag. Admins using the regular
+  User UI produce **User Practice** records. Previous records are not retroactively guessed to be tests.
+- Added incremental `20261007000200_admin_test_workspace.sql`: origin/request metadata, separate active-session
+  uniqueness, admin start/reset RPC, immutable evaluation provenance and an admin-test guard around the
+  existing evaluator RPC. Preserves RLS, ownership, capability and account rate/quota checks.
+- Public problem markup was extracted into a shared component without changing practice layout/classes.
+  Admin Test uses two equally sized content/chat columns and the existing design language. Draft preview,
+  normal Hint/Finish/Review and other Admin authoring screens retain their existing behavior.
+- No extra dependencies, paid provider calls, hosted mutation, commit or push. No new environment variable or
+  capability rotation is needed. Apply the new migration through the existing GitHub integration before using
+  these app changes; do not reset/re-seed or manually replay schema migrations in SQL Editor.
+
+Verification for this follow-up:
+
+| Command / check | Result |
+| --- | --- |
+| `pnpm lint` | PASS |
+| `pnpm typecheck` | PASS |
+| `pnpm test` | PASS — 159 tests; disposable PostgreSQL and mock providers only |
+| `pnpm check:boundaries --source-only` | PASS — 18 client import graphs; generated assets not checked |
+| `git diff --check` | PASS |
+| `pnpm build` (including escalated retry) | BLOCKED — Turbopack CSS worker port binding: Operation not permitted |
+| `pnpm dev` | BLOCKED — listen EPERM on 127.0.0.1:3001; no existing process was stopped |
+| HTTP `/admin/test`, browser rendering, hosted migration | Not verified / not applied |
+
+Local regression cases cover migration rollback/preservation, admin-only creation, practice/test separation,
+origin tagging, resume/reset idempotency, retained QA, hints/progress reset, late provider results, failure/retry,
+other-account/revoked-admin denial, account quotas surviving reset and old/new published-version pinning.
+Browser checks and activation steps: [M4B_VERIFICATION, Admin Test](M4B_VERIFICATION.md#7-admin-test-follow-up).
+
+### Follow-up fix: Admin pages before migration — 2026-10-07
+
+- Read-only hosted requests (`select=origin&limit=0`, no returned rows) confirmed PostgreSQL `42703`
+  for both `attempts.origin` and `message_evaluations.origin`. The Admin Test migration is not applied;
+  this is distinct from the already applied M4-B migration. No hosted data/schema was changed.
+- Evaluation QA now loads existing practice records when that specific column is absent, with a setup
+  notice and disabled source filter. Test shows the same migration notice instead of the generic Admin
+  error screen; no practice session is substituted and no test actions/provider calls are offered.
+- Normal practice resume/history also work before the migration. After application, the next request
+  uses persisted origin and keeps practice/test conversations separate; no process-level schema flag is cached.
+- Compatibility reads only accept the exact PostgreSQL missing-origin error. Auth, permission, network,
+  other missing columns and schema-cache errors are not masked. A failed legacy query stays an error.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test` (164 tests), source-only boundary checks (18 import graphs),
+  and `git diff --check` passed. Local PostgreSQL regression tests cover before/after schema behavior,
+  empty results and non-fallback failures. No paid provider calls.
+- `pnpm build` remains blocked by the environment's Turbopack worker port-binding restriction.
+  Authenticated browser rendering remains unverified. No commit/push/migration application was performed.
 
 ## Push status — 2026-10-07
 

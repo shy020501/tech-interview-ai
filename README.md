@@ -127,6 +127,7 @@ pnpm check:boundaries
 | `/admin/problems/[id]/preview?version=...` | admin 전용 saved public content preview |
 | `/admin/categories` | 실제 DB category tree 생성/수정/이동/안전한 삭제 |
 | `/admin/evals` | 실제 평가/비용/실패/escalation 조회와 human review |
+| `/admin/test` | 발행된 문제 선택, 별도 테스트 대화, Reset, Admin Test 태그로 평가 확인 |
 
 User는 공개된 문제를 로그인 없이 읽을 수 있다. **Start interview**에는 로그인이 필요하고,
 message/hint를 저장한 후 새로고침하면 같은 version의 진행 중 attempt를 복원한다.
@@ -137,6 +138,11 @@ key ideas/대안을 제공한다. 진행률은 서버가 계산하며 시험 점
 모든 Admin route는 login + DB의 admin role이 필요하다. 일반 사용자는 404로 거절된다.
 Source/candidate/problem/category는 실제 DB-backed data다. 새 version 발행 전까지 현재 발행본은
 유지되며 기존 attempt는 과거 version에 고정된다. `/admin/evals`의 human review는 QA 기록이며 사용자 상태를 재처리하지 않는다.
+
+Admin의 **07 Test**는 실제 interview evaluator를 재사용한다. **Reset conversation**은 이전 평가를
+보존하면서 새 회차를 시작하고, **06 Evaluations**의 **Admin Test** 태그/필터로 구분한다.
+`20261007000200_admin_test_workspace.sql` migration이 필요하며 기존 API key/capability는 유지한다.
+발행된 문제만 테스트하고 draft는 기존 preview에서 확인한다. Live Send/Retry에는 API 비용이 발생할 수 있다.
 
 ## 데이터 경계와 환경 설정
 

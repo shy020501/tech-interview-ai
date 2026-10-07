@@ -12,6 +12,7 @@ const adminLinks = [
   { href: "/admin/problems", label: "Problems", mark: "04" },
   { href: "/admin/categories", label: "Categories", mark: "05" },
   { href: "/admin/evals", label: "Evaluations", mark: "06" },
+  { href: "/admin/test", label: "Test", mark: "07" },
 ];
 
 export function UserHeader({ session }: { session: { signedIn: boolean; isAdmin: boolean } }) {

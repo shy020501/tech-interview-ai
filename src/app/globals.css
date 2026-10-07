@@ -125,6 +125,9 @@ progress::-moz-progress-bar { background: var(--accent); }
 .admin-main { min-width: 0; }
 .admin-notice { padding: 13px 36px; background: #f0f2f7; border-bottom: 1px solid var(--line); font-size: .72rem; color: #566276; }
 .admin-content { padding: 40px 36px 64px; max-width: 1500px; margin: auto; }
+.admin-test-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 30px; }
+.admin-test-grid .problem-detail > h2 { font-size: clamp(1.5rem, 2.3vw, 2.1rem); }
+@media (max-width: 1000px) { .admin-test-grid { grid-template-columns: minmax(0, 1fr); } .admin-test-grid .chat-panel { position: static; } }
 .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .metric-card { padding: 22px; }
 .metric-card:hover { border-color: #b7bfd1; }

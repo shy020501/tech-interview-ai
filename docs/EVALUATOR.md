@@ -599,3 +599,20 @@ executed results and [M4B_VERIFICATION](M4B_VERIFICATION.md) for the remaining b
 
 M4-B stops at live evaluator integration. Discovery/crawlers, authoring LLM, automatic publishing, RAG,
 fine-tuning, payment, production deployment changes and Korean localization remain out of scope.
+## Admin Test workspace (M4-B follow-up)
+
+After applying `20261007000200_admin_test_workspace.sql`, open **07 Test** at `/admin/test`.
+Choose a published problem, Start test, then send reasoning through the same live/mock engine as practice.
+The server-selected profiles, validation, escalation, controlled feedback, hints and account limits are unchanged.
+Send/Retry in live mode can incur provider costs; Start/Reset and problem selection do not call a model.
+
+Reset creates a new empty attempt and preserves the previous conversation and QA records. It is available
+while an evaluation is running; the old claim is invalidated and its late result cannot change the new state.
+An already-issued remote request may still incur a charge, with unavailable usage/cost recorded if its
+observation is canceled. Reset does not clear daily/account request budgets.
+
+**06 Evaluations** marks these records **Admin Test** and offers a Conversation source filter.
+The tag comes from the attempt origin in the database, not from model output or the sender's account role.
+An admin using the regular practice page is still **User Practice**. Only published versions are testable;
+testing does not lock an editable draft or change the authoring workflow. Existing attempts retain their
+version, and a reset selects the latest published version. See [manual checks](M4B_VERIFICATION.md#7-admin-test-follow-up).

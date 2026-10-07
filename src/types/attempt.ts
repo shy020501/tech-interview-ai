@@ -1,5 +1,7 @@
 import type { EvaluationResult, RubricAssessment } from "./evaluation";
 
+export type AttemptOrigin = 'practice' | 'admin_test';
+
 export interface ChatMessage {
   id: string;
   role: "user" | "interviewer" | "system_hint";
