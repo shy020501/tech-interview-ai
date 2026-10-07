@@ -2,12 +2,28 @@
 
 Current milestone: **M4-B**
 
-Status: **The earlier M4-B and difficulty-only changes are pushed; the Admin Test follow-up is implemented locally and awaits its new migration. No follow-up push or hosted DB change has been made. Authenticated browser verification remains unverified. Production build/dev server are blocked by this execution environment's port-binding restriction.**
+Status: **M4-B, difficulty-only classification and the Admin Test follow-up are pushed. The Admin Test commit's Supabase migration check succeeded and read-only hosted checks no longer return missing-origin errors. Authenticated browser verification remains unverified. Production build/dev server are blocked by this execution environment's port-binding restriction.**
 
 Verification date: 2026-10-07 Asia/Seoul (smoke artifact timestamp uses 2026-10-06 UTC).
 M4-A implementation/results and unresolved label/holdout review: [M4A_STATUS](history/M4A_STATUS.md).
 Prior milestones: [M3_STATUS](history/M3_STATUS.md), [M2_STATUS](history/M2_STATUS.md).
 Existing user-edited layout, stylesheet, navigation, category/problem catalog and authoring workflow are retained.
+
+## Admin Test activation — 2026-10-07
+
+- Pushed `9b628b5` to the existing `origin/main`: isolated test workspace, Evaluation source tags,
+  legacy read compatibility and `20261007000200_admin_test_workspace.sql`.
+- [Supabase Preview check](https://github.com/shy020501/tech-interview-ai/runs/112661559744) completed
+  successfully at `2026-10-07T06:24:56Z` (15:24:56 Asia/Seoul) through the existing GitHub integration.
+  No schema SQL was manually replayed; no reset, seed or capability rotation was performed.
+- Read-only hosted requests for `attempts.origin` and `message_evaluations.origin` now return the
+  expected anonymous permission denial (`401` / `42501`), replacing the earlier absent-column errors
+  (`400` / `42703`). No attempt/evaluation rows or credentials were printed.
+- The same committed source passed lint, typecheck, all 164 tests and the 18 client source-boundary
+  checks in the preceding fix. Scanned all 165 tracked/unignored files against configured secret
+  values before pushing: no matches. `.env.local` remains ignored. No paid provider calls.
+- Reload `/admin/test` to use the workspace. Actual authenticated Start/Send/Reset and Evaluation
+  tags still need a browser check; the migration and read-only checks do not establish that flow.
 
 ## Follow-up: Admin Test workspace — 2026-10-07
 
@@ -28,11 +44,11 @@ Existing user-edited layout, stylesheet, navigation, category/problem catalog an
 - Public problem markup was extracted into a shared component without changing practice layout/classes.
   Admin Test uses two equally sized content/chat columns and the existing design language. Draft preview,
   normal Hint/Finish/Review and other Admin authoring screens retain their existing behavior.
-- No extra dependencies, paid provider calls, hosted mutation, commit or push. No new environment variable or
+- At initial local implementation: no extra dependencies, paid provider calls, hosted mutation, commit or push. No new environment variable or
   capability rotation is needed. Apply the new migration through the existing GitHub integration before using
   these app changes; do not reset/re-seed or manually replay schema migrations in SQL Editor.
 
-Verification for this follow-up:
+Initial local verification for this follow-up (before the activation recorded above):
 
 | Command / check | Result |
 | --- | --- |
