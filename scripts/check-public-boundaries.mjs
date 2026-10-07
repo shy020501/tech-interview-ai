@@ -15,6 +15,7 @@ function walkClient(file, seen = new Set()) {
   seen.add(file);
   const source = sourceMap.get(file);
   if (!source || /^\s*['"]use server['"]/.test(source)) return; // Server Action references are permitted.
+  assert.ok(!file.includes(`${path.sep}lib${path.sep}evaluator${path.sep}`), `Client graph reaches evaluator internals: ${file}`);
   assert.ok(!/import\s+['"]server-only['"]/.test(source), `Client graph reaches server-only file: ${file}`);
   const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true);
   for (const item of ast.statements) {
@@ -31,6 +32,12 @@ for (const [file] of clients) walkClient(file);
 for (const [file, source] of sourceMap) {
   assert.ok(!/from\s+['"][^'"]*seed-data/.test(source), `Runtime source imports seed-only data: ${file}`);
 }
+const sourceOnly = process.argv.includes('--source-only');
+if (sourceOnly) {
+  console.log(`Source boundary checks passed: ${clients.length} client import graphs. Build assets were NOT checked.`);
+} else {
+// A failed/partial build must not silently validate stale assets.
+await readFile('.next/BUILD_ID', 'utf8').catch(() => { throw new Error('Complete pnpm build before checking generated assets, or use --source-only for source inspection.'); });
 const seed = JSON.parse(await readFile('supabase/seed-data.json', 'utf8'));
 const privateMarkers = seed.evaluationPackages.flatMap((entry) => [entry.referenceAnswer.slice(0, 100), ...entry.misconceptions.map((item) => item.description), ...entry.hintLadder.map((hint) => hint.text)]).filter((value) => value?.length > 30);
 const chunks = (await filesIn('.next/static/chunks')).filter((file) => file.endsWith('.js'));
@@ -41,3 +48,4 @@ for (const file of [...chunks, ...html]) {
 }
 console.log(`Boundary checks passed: ${clients.length} client import graphs, ${chunks.length} browser chunks, ${html.length} static public HTML files.`);
 console.log('DB-backed interview payloads are dynamic: inspect live responses after configuring Supabase. This check does not verify live RLS.');
+}

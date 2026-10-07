@@ -1,5 +1,3 @@
-/** Stable semantic keys; displayed as Core / Advanced through questionTypeLabels. */
-export type QuestionType = "fundamental" | "applied";
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 export type PublicationStatus = "draft" | "needs_review" | "published" | "archived";
 
@@ -24,7 +22,6 @@ export interface ProblemPublic {
   visualization: ProblemVisualization | null;
   categoryIds: string[];
   primaryCategoryId: string;
-  questionType: QuestionType;
   competencyIds: string[];
   difficulty: Difficulty;
   tags: string[];

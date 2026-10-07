@@ -17,7 +17,7 @@ export async function getAdminCandidates():Promise<QuestionCandidate[]> {
  await requireAdmin(); const db=await createClient();
  const {data,error}=await db.from('question_candidates').select('*').order('updated_at',{ascending:false});
  if(error)throw new Error('Unable to load candidates.');
- return data.map(r=>({id:r.id,sourceId:r.source_id,suggestedTitle:r.suggested_title,suggestedScenario:r.suggested_scenario,suggestedQuestion:r.suggested_question,suggestedCategoryIds:r.suggested_category_ids,questionType:r.question_type,competencyIds:r.competency_ids,difficulty:r.difficulty,candidateScore:r.candidate_score,status:r.status,notes:r.notes,draftProblemId:r.converted_problem_id,createdAt:r.created_at,updatedAt:r.updated_at,createdBy:r.created_by}));
+ return data.map(r=>({id:r.id,sourceId:r.source_id,suggestedTitle:r.suggested_title,suggestedScenario:r.suggested_scenario,suggestedQuestion:r.suggested_question,suggestedCategoryIds:r.suggested_category_ids,competencyIds:r.competency_ids,difficulty:r.difficulty,candidateScore:r.candidate_score,status:r.status,notes:r.notes,draftProblemId:r.converted_problem_id,createdAt:r.created_at,updatedAt:r.updated_at,createdBy:r.created_by}));
 }
 const versionInfo=(v:VersionRow):VersionInfo=>({id:v.id,version:v.version_number,status:v.status,revision:v.revision,publishedAt:v.published_at,updatedAt:v.updated_at});
 export async function getAdminProblemDetail(problemId:string,versionId?:string):Promise<ProblemEditorData|null> {

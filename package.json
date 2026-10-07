@@ -13,9 +13,14 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "NEXT_TELEMETRY_DISABLED=1 next typegen && tsc --noEmit",
     "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "eval:dry": "node scripts/evals/cli.mjs --dry",
+    "eval:review": "node scripts/evals/review.mjs",
+    "eval:live": "node scripts/evals/cli.mjs --live",
     "check:boundaries": "node scripts/check-public-boundaries.mjs",
     "verify:access": "node scripts/verify-authenticated-access.mjs",
-    "seed:generate": "node scripts/generate-seed.mjs"
+    "seed:generate": "node scripts/generate-seed.mjs",
+    "eval:setup": "node scripts/evals/setup-runtime.mjs",
+    "eval:smoke": "node scripts/evals/live-smoke.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

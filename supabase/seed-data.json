@@ -111,7 +111,6 @@
         "representation-learning"
       ],
       "primaryCategoryId": "sim-to-real",
-      "questionType": "applied",
       "competencyIds": [
         "objective_design",
         "experiment_design"
@@ -145,7 +144,6 @@
         "computer-vision"
       ],
       "primaryCategoryId": "computer-vision",
-      "questionType": "applied",
       "competencyIds": [
         "failure_diagnosis",
         "experiment_design"
@@ -177,7 +175,6 @@
         "representation-learning"
       ],
       "primaryCategoryId": "representation-learning",
-      "questionType": "fundamental",
       "competencyIds": [
         "objective_design"
       ],
@@ -208,7 +205,6 @@
         "sim-to-real"
       ],
       "primaryCategoryId": "robot-learning",
-      "questionType": "applied",
       "competencyIds": [
         "experiment_design"
       ],
@@ -238,7 +234,6 @@
         "3d-vision"
       ],
       "primaryCategoryId": "3d-vision",
-      "questionType": "applied",
       "competencyIds": [
         "failure_diagnosis",
         "tradeoff"
@@ -269,7 +264,6 @@
         "computer-vision"
       ],
       "primaryCategoryId": "computer-vision",
-      "questionType": "fundamental",
       "competencyIds": [
         "objective_design"
       ],

@@ -1,4 +1,4 @@
-import type { Difficulty, QuestionType } from './problem';
+import type { Difficulty } from './problem';
 export type SourceType = 'paper' | 'technical_blog' | 'video' | 'interview_report' | 'educational_material' | 'social_media' | 'other';
 export type UsageStatus = 'unknown' | 'reference_only' | 'approved_for_reuse';
 export interface SourceInput {
@@ -10,7 +10,7 @@ export interface SourceInput {
 export interface SourceCandidate extends SourceInput { id: string; discoveredAt: string; createdAt: string; updatedAt: string; createdBy: string | null }
 export interface CandidateInput {
   sourceId: string | null; suggestedTitle: string; suggestedScenario: string; suggestedQuestion: string;
-  suggestedCategoryIds: string[]; questionType: QuestionType; competencyIds: string[]; difficulty: Difficulty;
+  suggestedCategoryIds: string[]; competencyIds: string[]; difficulty: Difficulty;
   candidateScore: number | null; status: 'pending_review' | 'rejected'; notes: string;
 }
 export interface QuestionCandidate extends Omit<CandidateInput, 'status'> {

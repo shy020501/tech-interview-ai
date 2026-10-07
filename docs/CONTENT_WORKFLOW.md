@@ -22,7 +22,7 @@ A public URL is not evidence of reuse permission. No content is downloaded or co
 ## 2. Create a candidate
 
 Open `/admin/candidates` and choose **Create candidate**. Select a source or **Original idea — no external source**.
-Write a suggested title, scenario/question, category, type, competencies and difficulty. Scores are optional
+Write a suggested title, scenario/question, category, competencies and difficulty. Scores are optional
 human inputs. **Save candidate** closes the form only after a successful save. Failed saves keep inputs
 and the error visible; **Cancel** closes without saving. Edit or reject a candidate; a rejected candidate can return to review.
 
@@ -42,7 +42,7 @@ The URL slug is fixed for this milestone. Display text can change independently 
 Choose a version in **Version history**. For a draft, edit:
 
 - Public content: title, short description, scenario, question, assumptions and tags.
-- Classification: primary/secondary categories, Core/Advanced, competencies and difficulty.
+- Classification: primary/secondary categories, competencies and difficulty (Beginner / Intermediate / Advanced).
 - Visualization: `null` or the existing structured `flow` object. No executable HTML, SVG or JavaScript.
 - Evaluation package: reference answer, rubric, alternatives, misconceptions, hints, completion criteria and examples.
 - Sources/provenance: optional references with relation type and attribution notes, stored for this version.
@@ -142,8 +142,8 @@ suggestion or candidate references the category. **Delete unused category** only
 
 ## 8. User hint and review flow
 
-A signed-in user starts/resumes an attempt pinned to one published version. Feedback and progress remain
-scripted and visibly labelled. **Give me a hint** releases the next unused reviewed hint by level/list order.
+A signed-in user starts/resumes an attempt pinned to one published version. Feedback and progress are
+now handled by the M4-B structured evaluator and controlled server templates. **Give me a hint** selects an unused reviewed hint using reasoning state, prerequisites and level/order.
 Only one new hint and previously released conversation/hint history are returned; unrevealed hints and the
 full rubric remain private. Request IDs prevent retry duplication. Reload restores all released hints.
 
@@ -160,10 +160,11 @@ Run `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, then `pnpm check:b
 It migrates an in-memory PostgreSQL database, preserves an existing M2 attempt, and tests role boundaries,
 manual authoring, publication, versioning, hints/review, category integrity and rollback SQL assertions.
 
-For the hosted project, run the entire [content_workflow.sql](../supabase/tests/content_workflow.sql) in the
-trusted SQL editor. Do not execute only selected lines. Success returns the M3 check message; the final
-ROLLBACK removes all test records. This checks DB roles/claims, not browser password authentication.
-The old `supabase/tests/rls.sql` is a historical M2-only contract and is not compatible with M3 editorial grants.
+The [content_workflow.sql](../supabase/tests/content_workflow.sql) file is a historical **M3-only** rollback
+check. M4-B intentionally revokes its scripted chat/hint RPCs, so do not run it against the current hosted DB.
+Node tests retain it against the M3 migration stage and separately exercise the complete M4-B migration chain.
+The older `supabase/tests/rls.sql` is similarly M2-only. For current hosted/browser checks use
+[M4B_VERIFICATION](M4B_VERIFICATION.md); these do not reset data or disclose runtime capabilities.
 
 For a browser smoke test, use a clearly named **M3 manual check** source/candidate/problem and a unique
 `m3-manual-check-...` slug. Add a meaningful rubric, reference answer, two hints and criteria; save/preview/
@@ -173,5 +174,5 @@ the correct versions. Check a second user's review is inaccessible, and inspect 
 reference material is absent while active, only requested hints appear, and the completed review contains
 only the allowed debrief. Archive test problems afterwards; historical attempts remain intentionally intact.
 
-`/admin/evals` stays an explicitly labelled fixture area until M4. M4 will connect a provider-independent
-structured evaluator to pinned problem packages and server-owned reasoning state. It is not implemented here.
+`/admin/evals` now reads M4-B saved assessments and human reviews. Authoring and publication remain manual.
+Evaluation review annotations do not change historical attempt state; see [EVALUATOR](EVALUATOR.md).

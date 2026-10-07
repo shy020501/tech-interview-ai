@@ -12,13 +12,14 @@ test('M3 PostgreSQL lifecycle, access boundaries and preserved M2 data', async (
   const login=async(id) => { await db.exec('reset role'); await q("select set_config('request.jwt.claim.sub',$1,false)",[id??'']); await db.exec(id?'set role authenticated':'set role anon'); };
   const root=async()=>db.exec('reset role');
   const rejects=async(sql,args=[],pattern=/permission|Administrator|immutable|draft|missing|category|Category|cycle|Incomplete|incomplete|required|criteria|finished|unavailable|does not exist|Reload|converted|prerequisite/i) => assert.rejects(q(sql,args),pattern);
-  const content=structuredClone(seed.problems.find(p=>p.id==='problem-drone-dynamics'));
+  // The M3-stage RPC contract still required this now-retired field.
+  const content={...structuredClone(seed.problems.find(p=>p.id==='problem-drone-dynamics')),questionType:'applied'};
   const pkg=structuredClone(seed.evaluationPackages.find(p=>p.problemVersionId===content.versionId));
   const source={title:'m3-test source',url:'https://example.com/manual-test',sourceType:'paper',status:'discovered',relevanceScore:null,suggestedCategoryIds:['physical-ai'],notes:'Test only',provenanceNotes:'Manually entered',usageStatus:'reference_only',usageNotes:'No reuse claim'};
   let sourceId, candidateId, problemId, v1, v2, oldAttempt, newAttempt;
   try {
     await db.exec(`create role anon; create role authenticated; create schema auth; create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb default '{}'::jsonb); grant usage on schema auth to anon,authenticated; create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;`);
-    const migrations=(await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')).sort();
+    const migrations=(await readdir('supabase/migrations')).filter(f=>f.endsWith('.sql')&&f<='20261006000300_m3_editor_deletion.sql').sort();
     for(const file of migrations.slice(0,2)) await db.exec(await readFile('supabase/migrations/'+file,'utf8'));
     for(const id of [admin,alice,bob]) await q('insert into auth.users(id) values($1)',[id]);
     await q("update public.profiles set role='admin' where user_id=$1",[admin]);

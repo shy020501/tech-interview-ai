@@ -19,7 +19,7 @@ export function publicProjection(problem: ProblemRow, version: VersionRow, links
     assumptions: version.assumptions,
     visualization: visual ? { kind: visual.kind, title: visual.title, caption: visual.caption, nodes: visual.nodes.map((node) => ({ id: node.id, label: node.label, detail: node.detail })) } : null,
     categoryIds: memberships.map((link) => link.category_id), primaryCategoryId: primary[0]?.category_id ?? '',
-    questionType: version.question_type, competencyIds: version.competency_ids, difficulty: version.difficulty,
+    competencyIds: version.competency_ids, difficulty: version.difficulty,
     tags: version.tags, origin: version.origin,
   };
 }

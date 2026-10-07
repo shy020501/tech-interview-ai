@@ -9,13 +9,15 @@
 - 이 repository 밖의 프로젝트, 개인 사이트, 상위 repository를 수정하지 않는다.
 - 변경 전 현재 파일, Git 상태, 사용 중인 포트와 프로세스를 먼저 확인한다.
 - 사용자가 명시한 milestone 범위만 구현한다. 완료 후 멈추고 임의로 다음 milestone으로 넘어가지 않는다.
-- 현재 승인 범위는 M3의 수동 source/candidate 관리, problem package 편집/검수/발행, versioning, category 관리, 제한된 hint/debrief 공개다. 현재 repository UI를 source of truth로 유지하고 기존 styling/layout을 복원하거나 재설계하지 않는다. 완료 후 멈추며 M4 실제 LLM evaluator/API/benchmark를 시작하지 않는다.
+- 현재 승인 범위는 M4-B의 attempt-scoped evaluator 연결, controlled feedback, DB 기반 ordering/idempotency/quota, adaptive hint, Admin QA다. 현재 UI와 M3/M4-A 계약을 유지한다. M4-B 이후 source discovery/authoring LLM/배포로 넘어가지 않는다.
+- LLM은 제한된 evaluator이며 범용 chatbot이 아니다. 자유 답변/정답/prompt를 생성하는 endpoint를 만들지 않는다. Provider output은 schema·semantic·evidence 검증을 통과한 뒤에만 state reducer에 전달한다.
+- 일반 lint/typecheck/test/build와 eval:dry는 유료 API를 호출하지 않는다. Live benchmark/smoke는 명시적인 profile/model 설정과 eval:live 또는 eval:smoke --live로만 실행하며 호출 수/상한을 먼저 표시한다. key가 있다는 이유로 자동 실행하지 않는다.
 - 기존 코드를 삭제하거나 대규모 refactor하기 전에 변경 이유와 영향을 확인한다. 사용자 변경을 덮어쓰거나 관계없는 정리를 하지 않는다.
 - global package를 설치하거나 기존 Node.js/package manager를 불필요하게 업그레이드하지 않는다.
 - 기존 프로세스를 임의로 종료하지 않는다. 검증을 위해 직접 시작한 프로세스만 종료하고 종료 여부를 확인한다.
 - 기본 개발 서버는 `127.0.0.1:3001`이다. 포트가 사용 중이면 상황을 보고하고 대체 포트를 제안한다.
 
-- DB 변경은 migration/seed로 기록한다. 일반 runtime은 publishable key와 사용자 session만 사용한다. role 승격은 trusted SQL로만 수행하며 사용자 metadata를 admin 근거로 삼지 않는다.
+- DB 변경은 migration/seed로 기록한다. DB client는 publishable key와 사용자 session을 사용한다. M4-B evaluator 전용 RPC에 한해 서버 capability도 검사하며 service-role key로 대체하지 않는다. role 승격은 trusted SQL로만 수행하며 사용자 metadata를 admin 근거로 삼지 않는다.
 - Supabase credential이 없으면 실제 연결을 검증했다고 주장하지 않는다.
 
 - Admin 편집기를 열거나 편집 대상을 바꾸면 해당 영역으로 자동 스크롤한다. 입력 중에는 위치를 강제로 바꾸지 않고 reduced-motion 설정을 존중한다.
@@ -39,7 +41,7 @@
 - 향후 admin의 데이터 접근과 변경은 각각 서버에서 권한을 검사한다. 사용자 세션에도 소유권 검사를 적용한다.
 - 자동 생성한 문제는 human approval 없이 publish하지 않는다.
 - 힌트는 사용자가 명시적으로 Hint 버튼을 눌렀을 때만 제공한다. 일반 feedback에 힌트나 정답을 섞지 않는다.
-- category는 DB 기반 계층 구조로 확장한다. 코드 enum으로 category를 고정하거나 Question Type/Competency와 섞지 않는다.
+- category는 DB 기반 계층 구조로 확장한다. 코드 enum으로 category를 고정하거나 Difficulty/Competency와 섞지 않는다. 문제 수준은 Beginner/Intermediate/Advanced 난이도로만 표시하며 Question Type (Core/Advanced)은 사용하지 않는다.
 
 ## 제품 언어와 국제화
 

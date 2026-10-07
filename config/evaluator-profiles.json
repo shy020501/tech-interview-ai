@@ -1,0 +1,62 @@
+{
+  "selection": {
+    "defaultProfileId": "eval-luna-medium",
+    "difficultProfileId": "eval-luna-xhigh"
+  },
+  "profiles": [
+    {
+      "id": "eval-luna-medium",
+      "providerType": "openai_compatible",
+      "model": "gpt-6-luna",
+      "baseUrlEnv": "EVAL_PROVIDER_A_BASE_URL",
+      "apiKeyEnv": "EVAL_PROVIDER_A_API_KEY",
+      "reasoningEffort": "medium",
+      "maxOutputTokens": 16000,
+      "timeoutMs": 60000,
+      "enabled": true,
+      "role": "primary_candidate",
+      "capabilities": {
+        "supportsJsonSchema": true,
+        "supportsJsonMode": true,
+        "supportsUsageReporting": true,
+        "supportsTemperature": false,
+        "outputTokenParameter": "max_completion_tokens",
+        "supportedReasoningEfforts": ["none", "low", "medium", "high", "xhigh"]
+      },
+      "pricing": {
+        "currency": "USD",
+        "inputPerMillion": 0.10,
+        "outputPerMillion": 0.50,
+        "cachedInputPerMillion": 0.01,
+        "asOf": "2026-10-06"
+      }
+    },
+    {
+      "id": "eval-luna-xhigh",
+      "providerType": "openai_compatible",
+      "model": "gpt-6-luna",
+      "baseUrlEnv": "EVAL_PROVIDER_A_BASE_URL",
+      "apiKeyEnv": "EVAL_PROVIDER_A_API_KEY",
+      "reasoningEffort": "xhigh",
+      "maxOutputTokens": 32000,
+      "timeoutMs": 120000,
+      "enabled": true,
+      "role": "escalation_candidate",
+      "capabilities": {
+        "supportsJsonSchema": true,
+        "supportsJsonMode": true,
+        "supportsUsageReporting": true,
+        "supportsTemperature": false,
+        "outputTokenParameter": "max_completion_tokens",
+        "supportedReasoningEfforts": ["none", "low", "medium", "high", "xhigh"]
+      },
+      "pricing": {
+        "currency": "USD",
+        "inputPerMillion": 0.10,
+        "outputPerMillion": 0.50,
+        "cachedInputPerMillion": 0.01,
+        "asOf": "2026-10-06"
+      }
+    }
+  ]
+}

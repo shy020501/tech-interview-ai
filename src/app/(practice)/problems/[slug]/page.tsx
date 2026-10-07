@@ -16,5 +16,5 @@ export default async function ProblemPage({ params }: { params: Promise<{ slug: 
   const attempt = user ? await getActiveAttempt(identity.id) : null;
   const problem = attempt ? await getProblemVersion(attempt.problemVersionId) : currentProblem;
   if (!problem) notFound();
-  return <main id="main-content"><ProblemWorkspace problem={problem} categories={categories} problems={problems} attempt={attempt} signedIn={!!user} /></main>;
+  return <main id="main-content"><ProblemWorkspace problem={problem} categories={categories} problems={problems} attempt={attempt} signedIn={!!user} maxMessageChars={Number(process.env.MAX_EVALUATION_MESSAGE_CHARS || 4000)} /></main>;
 }

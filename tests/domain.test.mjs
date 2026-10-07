@@ -5,8 +5,8 @@ import { appendMockTurn, createMockAttempt } from "../src/mocks/interview.ts";
 import seed from "../supabase/seed-data.json" with { type: "json" };
 const { categories } = seed;
 
-const filters = { categoryId: "all", questionType: "all", difficulty: "all", query: "" };
-const fixture = (id, overrides = {}) => ({ id, versionId: `version-${id}`, title: id, shortDescription: "A scenario", categoryIds: ["sim-to-real"], questionType: "applied", difficulty: "intermediate", tags: ["Control"], status: "published", ...overrides });
+const filters = { categoryId: "all", difficulty: "all", query: "" };
+const fixture = (id, overrides = {}) => ({ id, versionId: `version-${id}`, title: id, shortDescription: "A scenario", categoryIds: ["sim-to-real"], difficulty: "intermediate", tags: ["Control"], status: "published", ...overrides });
 
 test("a parent category includes descendants at arbitrary depth and secondary memberships", () => {
   const tree = [...categories, { id: "deep-topic", slug: "deep-topic", name: "Deep topic", parentId: "sim-to-real" }, { id: "deeper-topic", slug: "deeper-topic", name: "Deeper topic", parentId: "deep-topic" }];
@@ -23,15 +23,16 @@ test("empty categories return no problems and malformed cycles terminate", () =>
   assert.equal(categoryPath(cycle, "a"), "B / A");
 });
 
-test("published filtering excludes draft, needs-review and archived data; applied sorts first", () => {
-  const items = [fixture("basics", { questionType: "fundamental" }), fixture("draft", { status: "draft" }), fixture("review", { status: "needs_review" }), fixture("archived", { status: "archived" }), fixture("applied")];
-  assert.deepEqual(filterProblems(items, categories, filters).map((item) => item.id), ["applied", "basics"]);
+test("published filtering excludes draft, needs-review and archived data and preserves repository order", () => {
+  const items = [fixture("basics", { difficulty: "beginner" }), fixture("draft", { status: "draft" }), fixture("review", { status: "needs_review" }), fixture("archived", { status: "archived" }), fixture("drone")];
+  assert.deepEqual(filterProblems(items, categories, filters).map((item) => item.id), ["basics", "drone"]);
 });
 
-test("category, type, difficulty and normalized text filters combine", () => {
-  const items = [fixture("Drone"), fixture("Basics", { questionType: "fundamental", difficulty: "beginner" })];
-  assert.deepEqual(filterProblems(items, categories, { categoryId: "ai", questionType: "applied", difficulty: "intermediate", query: "  CONTROL  " }).map((item) => item.id), ["Drone"]);
-  assert.deepEqual(filterProblems(items, categories, { ...filters, difficulty: "advanced" }), []);
+test("category, difficulty and normalized text filters combine without a question type", () => {
+  const items = [fixture("Drone"), fixture("Basics", { difficulty: "beginner" }), fixture("Expert", { difficulty: "advanced" })];
+  assert.deepEqual(filterProblems(items, categories, { categoryId: "ai", difficulty: "intermediate", query: "  CONTROL  " }).map((item) => item.id), ["Drone"]);
+  assert.deepEqual(filterProblems(items, categories, { ...filters, difficulty: "beginner" }).map((item) => item.id), ["Basics"]);
+  assert.deepEqual(filterProblems(items, categories, { ...filters, difficulty: "advanced" }).map((item) => item.id), ["Expert"]);
 });
 
 test("mock feedback is content-independent and does not deliver a hint or an answer", () => {

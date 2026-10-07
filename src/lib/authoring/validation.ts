@@ -21,7 +21,7 @@ const score = (x: unknown): number | null => x === null ? null : Number.isIntege
 function classification(r: Record<string, unknown>) {
   const competencies = texts(r.competencyIds,'Competencies');
   competencies.forEach(id=>pick(id,competencyIds,'competency'));
-  return { questionType: pick(r.questionType,['fundamental','applied'] as const,'question type'), difficulty: pick(r.difficulty,['beginner','intermediate','advanced'] as const,'difficulty'), competencyIds: competencies };
+  return { difficulty: pick(r.difficulty,['beginner','intermediate','advanced'] as const,'difficulty'), competencyIds: competencies };
 }
 export function parseContent(input: unknown): EditableContent {
   const r=obj(input,'Public content'), title=str(r.title,'Title',500);

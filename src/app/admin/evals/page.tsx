@@ -1,12 +1,8 @@
-import { PageHeading } from "@/components/ui";
-import { EvaluationCards } from "@/components/admin/pipeline-views";
-import { evaluationReviews } from "@/mocks/server/pipeline";
-import { getAdminSolution } from "@/lib/data/problems";
-import { requireAdmin } from "@/lib/auth/session";
-
-export default async function EvaluationsPage() {
-  await requireAdmin();
-  const droneSolution = await getAdminSolution("pv-drone-1");
-  const rubricNames = Object.fromEntries((droneSolution?.reasoningRubric ?? []).map((node) => [node.id, node.label]));
-  return <><PageHeading eyebrow="Evaluation quality" title="Review the reasoning behind the judgment." description="Live evaluator not enabled yet. Inspect two deliberately imperfect evaluator fixtures. Human decisions here are local; no evaluator or benchmark is running." /><EvaluationCards reviews={evaluationReviews} rubricNames={rubricNames} /></>;
+import { PageHeading } from '@/components/ui';
+import { EvaluationQA } from '@/components/admin/evaluation-qa';
+import { getEvaluationQA } from '@/lib/data/evaluations';
+import { requireAdmin } from '@/lib/auth/session';
+export default async function EvaluationsPage(){
+ await requireAdmin();const entries=await getEvaluationQA();
+ return <><PageHeading eyebrow="Evaluation quality" title="Review the reasoning behind the judgment." description="Inspect the 100 most recent evaluations, validated judgments and request costs. Human review annotations do not change saved interview state."/><EvaluationQA entries={entries}/></>;
 }

@@ -7,7 +7,7 @@ export interface ChatMessage {
   createdAt: string;
 }
 
-/** Server-owned state: later evidence may replace confirmed with partial, etc. */
+/** Legacy M1/M3 contract. Live M4-B persistence uses EvaluatorState in lib/evaluator/contracts.ts. */
 export interface ReasoningState {
   revision: number;
   assessments: Record<string, RubricAssessment>;
@@ -46,8 +46,11 @@ export interface AttemptSession {
   status: 'in_progress' | 'completed' | 'abandoned';
   messages: ChatMessage[];
   hintsUsed: { hintId: string; requestedAt: string; displayedText: string }[];
-  demoProgress: number;
+  progress: number;
+  coreComplete: boolean;
+  evaluatorMode: 'live' | 'mock' | null;
+  evaluation: {id:string|null;status:'idle'|'running'|'succeeded'|'failed';retryCount:number;error:string|null};
   startedAt: string;
   completedAt: string | null;
 }
-export type AttemptActionResult = { ok: true; attempt: AttemptSession } | { ok: false; error: string; signIn?: boolean; hintsExhausted?: boolean };
+export type AttemptActionResult = { ok: true; attempt: AttemptSession } | { ok: false; error: string; signIn?: boolean; hintsExhausted?: boolean; attempt?:AttemptSession };

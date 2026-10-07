@@ -44,8 +44,21 @@ test('sources validate URLs, optional integer scores and explicit usage status',
  for(const relevanceScore of [-1,101,0.5,'90'])assert.throws(()=>parseSource({...source,relevanceScore}));
 });
 test('original candidates are valid and conversion/source links cannot be forged through draft inputs',()=>{
- const c={sourceId:null,suggestedTitle:'Idea',suggestedScenario:'',suggestedQuestion:'',suggestedCategoryIds:[],questionType:'applied',competencyIds:[],difficulty:'intermediate',candidateScore:null,status:'pending_review',notes:''};
+ const c={sourceId:null,suggestedTitle:'Idea',suggestedScenario:'',suggestedQuestion:'',suggestedCategoryIds:[],competencyIds:[],difficulty:'intermediate',candidateScore:null,status:'pending_review',notes:''};
  assert.equal(parseCandidate(c).sourceId,null);assert.throws(()=>parseCandidate({...c,status:'converted_to_problem'}));
  assert.throws(()=>parseSourceLinks([{sourceId:'source-a',relationType:'copied_without_review',attributionNote:''}]));
  assert.throws(()=>parseSourceLinks([{sourceId:'source-a',relationType:'reference',attributionNote:''},{sourceId:'source-a',relationType:'reference',attributionNote:''}]));
+});
+test('classification requires a valid difficulty and discards retired question type input',()=>{
+ const candidate={sourceId:null,suggestedTitle:'Idea',suggestedScenario:'',suggestedQuestion:'',suggestedCategoryIds:[],competencyIds:[],candidateScore:null,status:'pending_review',notes:''};
+ for(const difficulty of ['beginner','intermediate','advanced']) {
+  assert.equal(parseContent({...original,difficulty}).difficulty,difficulty);
+  assert.equal(parseCandidate({...candidate,difficulty}).difficulty,difficulty);
+ }
+ for(const difficulty of [undefined,null,'core','applied','expert']) {
+  assert.throws(()=>parseContent({...original,difficulty}),/difficulty/);
+  assert.throws(()=>parseCandidate({...candidate,difficulty}),/difficulty/);
+ }
+ assert.equal('questionType' in parseContent({...original,questionType:'applied'}),false);
+ assert.equal('questionType' in parseCandidate({...candidate,difficulty:'beginner',questionType:'fundamental'}),false);
 });

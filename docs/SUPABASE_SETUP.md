@@ -1,4 +1,4 @@
-# Supabase setup — M3
+# Supabase setup — M4-B
 
 사용자가 M3 요청에서 실제 Supabase 연결, signup/login/logout, admin 지정, RLS 및 M2 검증을 모두 완료했다고 확인했다.
 기존 project/env/Auth 설정을 그대로 사용한다. 재설정이나 DB reset은 필요 없다. M3 적용/검증 결과는 STATUS를 따른다.
@@ -28,9 +28,12 @@ test -e .env.local || cp .env.example .env.local
 legacy anon key를 사용하는 프로젝트라면 그 값을 위 PUBLISHABLE_KEY 변수에 넣을 수 있다.
 이름을 하나로 통일하며 별도의 ANON_KEY fallback은 없다. **service_role/secret key는 넣지 않는다.**
 서버도 동일한 publishable key + 사용자 cookie session으로 RLS를 적용한다.
+M4-B evaluator 전용 RPC는 별도의 `EVALUATOR_RUNTIME_SECRET` capability를 함께 검사한다.
+이것은 Supabase service-role key가 아니며, 일반 DB query/RLS를 우회하는 key도 아니다.
+설정 절차는 아래 M4-B 항목을 따른다.
 
 `.env.local`과 실제 키를 source, 문서, commit, 채팅에 붙여 넣지 않는다. `.gitignore`는
-`.env*`를 제외하고 비어 있는 root `.env.example`만 허용한다. LLM 변수는 M3에서 사용하지 않는다.
+`.env*`를 제외하고 비어 있는 root `.env.example`만 허용한다. 기존 Supabase/Auth 값은 보존한다.
 
 ## 2. Migration 적용
 
@@ -49,6 +52,16 @@ legacy anon key를 사용하는 프로젝트라면 그 값을 위 PUBLISHABLE_KE
 1. `supabase/migrations/20261005000100_m2_foundation.sql`: 9개 table, constraint, trigger, grant, RLS, RPC.
 2. `supabase/migrations/20261006000100_m2_initial_catalog.sql`: 기존 M2 초기 category/problem/private package.
 3. `supabase/migrations/20261006000200_m3_content_workflow.sql`: 수동 source/candidate, version category/source, 작성/발행 RPC, 순차 hint와 완료 debrief.
+4. `supabase/migrations/20261006000300_m3_editor_deletion.sql`: 사용 중인 콘텐츠를 보호하는 Admin 삭제 RPC.
+5. `supabase/migrations/20261006000400_m4b_live_evaluation.sql`: 평가 claim/log/QA, quota/order, capability 검증, adaptive hint와 완료 review 기반.
+6. `supabase/migrations/20261007000100_remove_question_type.sql`: Question Type 컬럼 제거, 난이도 기반 candidate/draft/version/publish RPC로 교체.
+
+Question Type 제거 migration은 `problem_versions`와 `question_candidates`의 기존 유형 값만
+삭제한다. 난이도, 문제 본문/ID, published version, private package, attempt와 메시지/힌트는
+그대로 보존한다. 유형 데이터만 제거하는 사용자 요청에 따른 변경이며 난이도로 변환하지 않는다.
+컬럼 삭제와 관련 RPC 교체는 단일 DO statement로 함께 성공하거나 rollback된다.
+최신 UI의 후보/Draft 저장과 발행에는 이 migration이 필요하다. GitHub → Supabase 적용 완료를
+확인한 다음 최신 앱을 사용한다. 초기 migration을 수정하거나 기존 DB를 reset/re-seed하지 않는다.
 
 M3는 새 table/column을 추가하고 기존 version 분류를 backfill한다. 문제 본문/평가 package/attempt를 삭제하거나 초기화하지 않는다.
 발행본/기존 attempt는 보존하고 authenticated table mutation을 검증된 RPC로 제한한다. 적용 전 로컬 PostgreSQL 검사를 실행한다.
@@ -70,14 +83,14 @@ Supabase 기본 project DB의 migration 적용이며 Next.js 사이트 hosting/p
 
 - 현재 UI에서 가져온 category 9개와 problem 6개, 각 version/category 연결.
 - Published: Drone Dynamics Adaptation, When a New Camera Changes Everything,
-  What Makes a Representation Useful? (Advanced 2개/Core 1개).
+  What Makes a Representation Useful? (공개 문제 3개).
 - draft/needs_review/archived 예제와 private evaluation package 3개.
 - 기존 공개 문구, version/category ID, visualization을 그대로 보존했다.
 - 기존 debrief 문구도 seed-data의 deferredDebriefs에 보존했다. M2 SQL/runtime에서는 사용하지 않는다.
 - 사용자/profile/admin 계정 seed는 없다. 실제 사용자 생성은 Auth로 한다.
 
 `supabase/seed-data.json`은 초기 개발 자료이고 runtime은 DB만 조회한다. `pnpm seed:generate`는
-보존한 초기 자료에서 SQL 파일만 재생성한다. M3 이후 새 콘텐츠는 Admin workflow에서 작성한다.
+보존한 초기 자료에서 현재 schema용 SQL 파일만 재생성한다. 삭제된 Question Type 필드는 포함하지 않는다. M3 이후 새 콘텐츠는 Admin workflow에서 작성한다.
 기존 hosted DB에서 초기 seed를 콘텐츠 동기화/복구 도구로 재실행하지 않는다.
 `app_private` schema는 Data API exposed schema 목록에 추가하지 않는다.
 
@@ -144,14 +157,15 @@ select tablename, rowsecurity from pg_tables
 where schemaname = 'public'
   and tablename in ('profiles','categories','problems','problem_versions','problem_categories',
     'problem_evaluation_packages','attempts','attempt_messages','hint_events','sources',
-    'question_candidates','problem_version_categories','problem_sources')
+    'question_candidates','problem_version_categories','problem_sources','message_evaluations','assessment_runs')
 order by tablename;
 ```
 
-M3 검사는 `supabase/tests/content_workflow.sql` 전체를 trusted SQL editor에서 실행한다. synthetic Auth 사용자와
-m3-check-* 콘텐츠를 한 transaction에 만들고 role/claim을 전환하여 권한, 작성/발행, version 고정, hint,
-완료 review를 검사한 뒤 ROLLBACK한다. 기존 계정/콘텐츠는 수정하지 않는다. 부분 실행하지 않는다.
-로컬 실행 결과와 hosted 실행 결과는 STATUS에 구분한다. `supabase/tests/rls.sql`은 이전 M2 계약의 역사적 검사다.
+`supabase/tests/content_workflow.sql`은 M3-only 역사적 rollback 검사다. M4-B는 기존 scripted
+message/hint RPC 실행 권한을 회수하므로 현재 hosted DB에는 이 파일을 실행하지 않는다.
+`pnpm test`는 M3 단계에서 그 검사를 유지하고 전체 migration 적용 후 M4-B runtime/RLS를 별도 검증한다.
+`supabase/tests/rls.sql`도 이전 M2 계약 전용이다. 현재 hosted/browser 검사는
+[M4B_VERIFICATION](M4B_VERIFICATION.md)을 따른다.
 
 일반 계정은 private package/source/candidate를 직접 읽을 수 없다. 콘텐츠와 attempt의 직접 테이블 쓰기는
 admin에게도 허용하지 않고 역할/소유권/입력을 확인하는 RPC만 허용한다. Profile role 승격은 기존처럼 trusted SQL만 수행한다.
@@ -205,3 +219,25 @@ GitHub/Supabase 연동에서는 해당 commit의 Supabase check가 성공했는�
 
 실제 삭제는 Admin의 확인 동작 이후에만 수행한다. 인터뷰가 있는 문제와 참조 중인 source는 차단되며,
 candidate 삭제는 연결된 problem을 유지한다. 자세한 영향 범위는 [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md)를 따른다.
+
+## M4-B evaluator activation
+
+M4-B migration은 기존 rows를 삭제/초기화하지 않으며 한 DO statement로 원자 적용한다.
+`message_evaluations`, `assessment_runs`의 RLS와 attempt별 claim/sequence/lease, quota, QA를 추가한다.
+기존 scripted message/hint RPC의 authenticated EXECUTE를 회수하므로 새 코드와 migration을 함께 사용한다.
+Schema 적용 여부는 다음 read-only SQL로 확인할 수 있다.
+
+```sql
+select to_regclass('public.message_evaluations'), to_regclass('public.assessment_runs');
+select relname, relrowsecurity from pg_class
+where oid in ('public.message_evaluations'::regclass, 'public.assessment_runs'::regclass);
+```
+
+앱 runtime은 publishable key와 본인 session으로 요청하며, 제한된 evaluator operation에 한해
+`EVALUATOR_RUNTIME_SECRET`도 검사한다. trusted SQL 외에는 capability 해시를 만들거나 변경할 수 없다.
+`pnpm eval:setup live`가 `.env.local`의 기존 값을 보존하고 mode/secret 및 ignored hash-only SQL을 만든다.
+Migration이 완료되면 생성된 `artifacts/evals/setup/runtime-capability.sql`을 trusted SQL로 적용한다.
+이는 schema 수동 migration이 아닌 환경별 capability 설정이다. 실제 secret/API key는 SQL에 넣지 않는다.
+
+자세한 활성화·일반 user/Admin·실패·Network 검사는 [M4B_VERIFICATION](M4B_VERIFICATION.md),
+현재 적용/미검증 상태는 [STATUS](STATUS.md)를 따른다. 기존 Supabase project/Auth/admin은 재설정하지 않는다.

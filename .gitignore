@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/artifacts/evals/
+/config/evaluator-profiles.local.json
 
 # next.js
 /.next/

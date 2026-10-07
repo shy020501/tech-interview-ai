@@ -1,0 +1,22 @@
+{
+  "profiles": [
+    {
+      "id": "eval-cheap-a",
+      "providerType": "openai_compatible",
+      "model": "REPLACE_WITH_PROVIDER_MODEL_ID",
+      "baseUrlEnv": "EVAL_PROVIDER_A_BASE_URL",
+      "apiKeyEnv": "EVAL_PROVIDER_A_API_KEY",
+      "maxOutputTokens": 2000,
+      "timeoutMs": 30000,
+      "enabled": false,
+      "role": "primary_candidate",
+      "capabilities": {
+        "supportsJsonSchema": false,
+        "supportsJsonMode": true,
+        "supportsUsageReporting": true,
+        "supportsTemperature": true,
+        "outputTokenParameter": "max_completion_tokens"
+      }
+    }
+  ]
+}

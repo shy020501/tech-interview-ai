@@ -1,215 +1,151 @@
 # Milestone status
 
-Current milestone: **M3**
+Current milestone: **M4-B**
 
-Status: **Implemented and applied to the connected Supabase project. Authenticated M3 browser smoke checks remain.**
+Status: **M4-B implementation and disposable-PostgreSQL/mock runtime tests pass. A four-message real-provider smoke passed. Hosted Supabase migration/capability activation and browser verification are still pending. Production build/dev server are blocked by this execution environment's port-binding restriction.**
 
-M2 연결과 모든 요구 검증은 사용자가 M3 요청에서 완료를 확인했다. 상세 이력은 [M2_STATUS](history/M2_STATUS.md)에 보존한다.
+Verification date: 2026-10-07 Asia/Seoul (smoke artifact timestamp uses 2026-10-06 UTC).
+M4-A implementation/results and unresolved label/holdout review: [M4A_STATUS](history/M4A_STATUS.md).
+Prior milestones: [M3_STATUS](history/M3_STATUS.md), [M2_STATUS](history/M2_STATUS.md).
+Existing user-edited layout, stylesheet, navigation, category/problem catalog and authoring workflow are retained.
 
-## Completed
+## Push status — 2026-10-07
 
-- DB-backed manual sources: create/edit/reject, source type, usage/provenance notes and category suggestions.
-- DB-backed question candidates, optional source, editable suggestions, reject/return to review and idempotent conversion.
-- Problem public content, classification, structured visualization and source links editor.
-- Private evaluation package editor: stable rubric IDs, add/edit/delete/reorder, prerequisites, alternatives,
-  misconceptions, hint ladder, completion criteria and labelled evaluation examples.
-- Draft saves accept incomplete content; server/DB validation rejects invalid references/types/graphs.
-- Admin-only preview reuses the existing User workspace. No draft content is exposed through public routes.
-- Server-authorized, transaction-safe validation/publication with explicit human review in the UI.
-- Published snapshot immutability in database triggers; new version copies public/private content and
-  classification/source links. Revision guards prevent stale edits. Version history and archive are available.
-- Version-specific category memberships, stable existing attempt references and current-version new attempts.
-- Category create/edit/reparent/order/delete, arbitrary depth, cycle prevention and in-use delete protection.
-- Requested hints released one at a time by level/list order, persisted with retry idempotence.
-- Completed-owner debrief returns reference answer, key ideas and alternatives for the pinned version only.
-- Source/candidate mocks removed from runtime; existing M2 seed/content/account data are preserved.
-- English-first and provider-independent contracts maintained. Existing globals.css and navigation unchanged.
-- Workflow/setup/architecture documentation and a hosted rollback SQL verification guide.
+The user asked whether the pending work can be applied and pushed after the classification change.
+The pending submission includes the M4-A engine/benchmarks, M4-B runtime and difficulty-only follow-up.
+`origin/main` was checked remotely at `a1c6435`; there were no intervening remote commits.
+GitHub's preceding Supabase Preview check succeeded. Schema changes use that existing integration.
 
-## Verification
+- Re-ran lint, typecheck, all 143 tests and source-boundary checks: PASS. No paid API calls.
+- Scanned the 155 tracked/unignored files against locally configured secret values: no matches.
+  `.env.local`, evaluator artifacts and local profile overrides remain ignored.
+- Production build still fails at Turbopack worker port binding, including an escalated retry.
+  This is not recorded as a successful build or browser check.
+- No direct database administration credential is available. Hosted migration outcomes must be checked
+  after push; runtime capability registration is a separate trusted SQL operation, not a schema migration.
+- A local commit was prepared. Automatic approval review rejected `git push origin main` before execution:
+  the 92-file submission and two hosted migrations require explicit approval of that scope, and a successful
+  build has not been verified. No remote push or hosted database change occurred. Awaiting explicit approval;
+  the rejection will not be bypassed through a different transport or branch.
 
-Executed on 2026-10-06:
+## Follow-up: difficulty-only classification — 2026-10-07
 
-| Check | Result |
+- Removed Question Type (Core/Advanced) from the User catalog/filter/cards, shared interview/preview,
+  Admin candidate cards/forms, problem list/editor, public/domain contracts and authoring validation.
+- Difficulty remains Beginner / Intermediate / Advanced. Existing difficulty values are unchanged;
+  the Drone scenario remains Intermediate. Categories, competencies and tags are retained.
+- Catalog controls now use three columns (search/category/difficulty); the smaller layout places search
+  above the two selects. Existing card emphasis and interview/Admin panel layout remain intact.
+- Removed the type-based sort; filtered results retain repository publication order. No content is
+  reclassified by its former type. Current seed inputs/generator and docs reflect the new contract.
+- Added `20261007000100_remove_question_type.sql`: atomically replaces the relevant validated Admin
+  RPCs and removes only `question_type` from versions/candidates. Existing difficulty/content/package,
+  identity/version IDs and saved attempts/messages/hints are preserved. Applied migrations are unchanged.
+- Disposable PostgreSQL tests verify rollback, preservation, authorization, candidate create/edit/convert,
+  draft validation/publication, immutable published snapshots and old/new attempt version pinning.
+
+Current follow-up verification:
+
+| Command / check | Result |
+| --- | --- |
+| `pnpm seed:generate` | PASS — local SQL generation only; no hosted seed execution |
+| `pnpm lint` | PASS |
+| `pnpm typecheck` | PASS |
+| `pnpm test` | PASS — 143 tests; no paid APIs or hosted DB calls |
+| `pnpm check:boundaries --source-only` | PASS — 17 client import graphs |
+| `git diff --check` | PASS |
+| `pnpm build` | BLOCKED — Turbopack CSS worker port binding is not permitted in this execution environment |
+| `pnpm build --webpack` | FAILED — Next.js could not parse its TypeScript `--showConfig` subprocess output; standalone `tsc --showConfig` succeeds; no build configuration was changed |
+| Browser rendering / new generated assets / hosted migration | Not verified / not applied |
+
+The user reported a successful full boundary check before this follow-up (17 client graphs, 19 browser
+chunks, 3 static public HTML files). That result does not validate assets generated from these new changes.
+No commit/push/hosted migration was performed. Candidate/Draft saves and publication with the new app
+require the new migration through the existing GitHub → Supabase path; do not reset or re-seed the DB.
+After applying it, check the difficulty filter, candidate create/edit, Draft save/publish, User detail and
+Admin preview at `http://localhost:3001`, then rerun build and full generated-asset boundary checks.
+
+## Completed in code
+
+- Attempt-scoped authenticated Server Actions share the M4-A compact input/engine/validators/reducer.
+- Explicit live/mock mode; configured medium primary / xhigh escalation from the user's registry selection.
+  Missing configuration fails closed. No hidden model or mock fallback. Production mock is forbidden.
+- Durable user-message claim before model calls, UUID idempotency, one active evaluation per attempt,
+  base revision/sequence checks, lease expiry/recovery (including another abandoned attempt's reservations),
+  bounded retry of the saved message, and atomic final state/feedback persistence.
+- Independent strong evaluation on configured escalation conditions. Primary state is not applied first;
+  invalid/unreliable/failed final output preserves reasoning and progress.
+- Intent routing with fixed server feedback; public-only clarification/meta handling; no generic chatbot endpoint.
+- DB-backed success/request/escalation budgets and minute limits, abuse strikes/cooldown, configurable MVP defaults.
+- Server progress and core-complete notice, without automatic Finish. Input remains editable while evaluating.
+- Adaptive hint selection with version/state/prerequisite/used-hint checks; one released hint, no progress credit.
+  Bounded already-released hint provenance is labelled separately in evaluation input.
+- Completed-owner reference debrief plus deterministic covered/unresolved summaries; no generative debrief.
+- Per-call assessment logs: provider/profile/model, policy/schema/profile version, validation/evidence result,
+  usage/cached tokens, latency, cost availability, escalation reasons and sanitized errors.
+- DB-backed `/admin/evals`, filters and human review/notes. Review editor opens explicitly and closes after saving.
+  Human annotations never recalculate attempts. Admin dashboard counts actual pending evaluations.
+- Incremental atomic migration, gated evaluator RPC, retained RLS and revoked legacy mock-turn/hint execution.
+  Both user session and a limited server capability are required; no Supabase service-role key is introduced.
+- Setup helper, explicit four-case live smoke helper, env template, architecture/evaluator/setup/manual-check docs.
+
+## Executed verification
+
+| Command / check | Result |
 | --- | --- |
 | `pnpm lint` | PASS |
 | `pnpm typecheck` | PASS |
-| `pnpm test` | PASS — 44 tests, including in-memory PostgreSQL migration/RLS/RPC tests |
-| `pnpm build` | PASS — all routes, including admin preview |
-| `pnpm check:boundaries` | PASS — client import/browser assets/public static HTML inspection |
+| `pnpm test` | PASS — 135 tests; no paid calls or hosted DB access |
+| `pnpm eval:dry --split all --all-cases` | PASS — 83 fixtures, 80 valid fixture outputs + 3 pre-guard rejections; this is not model accuracy |
+| `pnpm check:boundaries --source-only` | PASS — 17 client import graphs; generated bundle/dynamic HTTP payloads NOT checked |
+| `pnpm eval:setup live` | PASS — local explicit live mode/capability and hash-only SQL generated; existing provider/Supabase entries preserved, no DB/API call |
+| `pnpm eval:smoke --plan` | PASS — four synthetic messages, at most eight requests |
+| `pnpm eval:smoke --live` | PASS — 4 actual primary requests, all schema/semantic/evidence valid; no escalation needed in these four cases |
 | `git diff --check` | PASS |
+| `pnpm build` (including escalated retry) | FAILED — Turbopack CSS worker cannot bind a port: Operation not permitted |
+| `pnpm dev` on 127.0.0.1:3001 | FAILED — listen EPERM; no existing process was killed |
+| HTTP `/problems` at 127.0.0.1:3001 | Not verified — connection unavailable in this execution environment |
+| Browser rendering / authenticated browser E2E / DevTools responses | Not verified |
+| Hosted Supabase migration / new capability setup / live cookie-session flow | Not applied or verified; no trusted migration access was available |
 
-Database tests apply all migrations in disposable PGlite PostgreSQL, preserve an M2 attempt and an existing
-future draft, and exercise admin/user/anon roles. Assertions cover authorization, candidate conversion,
-invalid/valid publication, frozen published content, new versions, pinned attempts/categories, one-hint release,
-retry behavior, completion/ownership debrief rules, category cycles/deletion and archive/history.
-An intentional failure at the end of the migration proves all changes roll back without an outer transaction.
-The entire `supabase/tests/content_workflow.sql` also passes locally and rolls back its synthetic records.
-No hosted DB reset or destructive cleanup was performed. PGlite is a dev dependency only.
+The M4-B PostgreSQL tests use the **entire** tracked migration chain and mock transport, exercising normal
+reasoning, all nonreasoning intents, state downgrades, strong success/failure, invalid evidence, structured retry,
+request replay, concurrent retries, rate/quota/strikes, stale recovery, adaptive hints, ownership/RLS and Admin QA.
+The historical M3 SQL test remains tested against the M3 stage because M4-B deliberately revokes old mock RPCs.
+These are runtime/database integration tests, **not browser or hosted Supabase E2E tests**.
 
-### Connected Supabase
+Real-provider smoke artifact (gitignored):
+`artifacts/evals/2026-10-06T14-54-46-751Z-m4b-smoke/summary.json`.
 
-- M3 implementation committed/pushed to the existing `main` integration (`f64a10b`, followed by `1a795b0`).
-- The first application stopped at its first LOCK statement because this runner does not provide a file-level
-  transaction. No data changed in that failed run. Before successful application, the unapplied migration was
-  corrected to one atomic DO statement and verified without an outer transaction; Supabase check then passed.
-- `20261006000200_m3_content_workflow.sql` is applied. Read-only Data API checks confirm the new version columns
-  and memberships, 9 existing categories with unchanged hierarchy, and the same 3 published current versions.
-- Anonymous SELECT on sources/candidates/source links/private packages/profiles/attempts/messages/hints is denied.
-- Anonymous execution of source creation, publication, hint and debrief RPCs is denied.
-- No elevated application credential, test Auth account, hosted disposable content, reset or production website
-  deployment configuration was introduced. Existing M2 environment/account/Auth settings remain unchanged.
+- Four synthetic Drone inputs: reasoning, off-topic, prompt injection, clarification. All intents matched.
+- Only reasoning changed progress (0 → 12.5); other inputs preserved 12.5. Synthetic Finish/debrief succeeded.
+- Actual calls: 4 medium, 0 xhigh, no structured retry. Strong branching was tested with mock transport, not a
+  new paid escalation example. M4-A's previous xhigh benchmark remains historical evidence, not this smoke.
+- Provider-reported tokens: input 12,981 / output 650 / cached input 8,937.
+- Recorded call latency: 2.32–4.94 seconds. Registry-based estimated total **USD 0.00081877**, not an invoice.
+- Disposable PostgreSQL only. No hosted user/content data was read, reset or modified by the smoke.
+- This small smoke verifies wiring; it does not establish deployment-wide accuracy or abuse resistance.
 
-### Browser and HTTP
+## Activation still required
 
-- Actual headless Firefox on `127.0.0.1:3001`: category/type filters, empty state and reset pass.
-- Interview Sign in gate and disabled anonymous composer pass; at 1440px the existing problem/chat panels are
-  both 567px wide. The 500px viewport has no horizontal overflow. Screenshots were visually inspected.
-- `/problems`, all 3 seeded published detail routes, `/login` and `/signup`: HTTP 200.
-- All 6 admin routes, admin draft preview and `/review` redirect anonymous users to login (HTTP 307).
-- Public catalog/detail HTML with embedded RSC contains none of the private package fields/reference answers.
-- Actual Admin problem/source/candidate/category components were rendered as isolated static local fixtures
-  with the production CSS. Desktop/mobile overflow checks pass; editor/source screenshots were inspected.
-  These fixtures do not authenticate, persist or exercise server actions and are not a live Admin workflow test.
-- `src/app/globals.css` is unchanged (SHA-256 `72dddeff378bac943b5bbbbbc3b8677ff04008de09a7510cfb3a6207f8dc753e`).
-  The existing development server on port 3001 was preserved.
+1. Review/apply `20261006000400_m4b_live_evaluation.sql` using the existing GitHub → Supabase migration path.
+   No migration commit/push/hosted apply was performed in this turn. Do not reset or re-seed the existing DB.
+2. Local `pnpm eval:setup live` is already complete. It preserved existing Supabase/provider entries and generated the capability plus hash-only SQL. On a new environment, run it there before registering that environment’s hash.
+3. After migration, apply generated `artifacts/evals/setup/runtime-capability.sql` through trusted SQL, then
+   restart dev. The hash-only configuration is separate from schema migration history. Real keys are never pasted.
+4. Run build/bundle checks from the user's normal terminal, then the User/Admin/Network checks in
+   [M4B_VERIFICATION](M4B_VERIFICATION.md). Ignored `.env.local` now has explicit live mode and a server capability; hosted registration remains pending. Neither secret values nor provider keys were printed.
 
-### Remaining manual M3 checks
+## Known limitations / not implemented
 
-No admin/user password or authenticated browser session was provided to the agent. Role/ownership tests passed
-in local PostgreSQL; **hosted authenticated M3 authoring/hint/review actions have not been exercised by the agent**.
-M2's user-confirmed completion does not substitute for these new M3 checks.
+- No hosted migration, browser Auth/UI rendering, dynamic payload or full production build verification in this environment.
+- Benchmarks still need human ground-truth review and held-out quality evaluation. M4-B adds no automatic model selection.
+- Clarification repeats public assumptions conservatively; no newly generated condition or fine-grained assumption matching.
+- No exactly-once remote billing after process crashes; reserved stale calls can retain unknown usage/cost.
+- Admin QA shows latest 100 evaluations; notes support future export, with no automatic benchmark export/reprocessing.
+- Token usage is logged, but a daily token quota is not implemented. Request/success/escalation limits are active.
+- No automatic source discovery/crawler, LLM authoring, fine-tuning, self-hosted evaluator, RAG/queues, billing,
+  Korean localization or production deployment changes.
 
-1. At `http://localhost:3001/admin`, create a clearly named M3 test source/candidate, convert once, edit a draft
-   and its evaluation package, preview, validate and publish. Repeat conversion must return the same problem.
-2. As a normal user, start the new problem, request two distinct hints, reload, finish and view its reference debrief.
-3. Create/publish V2 while a V1 attempt exists; confirm old attempts retain V1 and fresh attempts use V2.
-4. Confirm incomplete/other-user review denial and inspect authenticated problem/hint/review Network responses.
-5. Optionally run the complete `supabase/tests/content_workflow.sql` in the trusted SQL editor; it creates only
-   synthetic records inside a transaction and rolls back. It was run locally, **not on hosted Supabase**.
-
-Detailed steps: [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md). Use archive for test problems with attempts;
-do not reset or delete existing data. Current M3 implementation is complete; the above verification is not claimed complete.
-
-## M3 follow-up — editor visibility and deletion (2026-10-06)
-
-Implemented:
-- Source/candidate successful saves close their forms; errors preserve entered content. Cancel is available.
-- The problem library no longer auto-selects the first problem or loads its private package. Explicit title / Edit
-  draft / View version selection opens the editor. Close editor confirms discarding unsaved changes.
-- Admin-only confirmed deletion for sources, candidates and problems through role-checked, atomic RPCs.
-- Sources with references are protected. Candidate deletion keeps converted problems. Whole problem deletion
-  removes versions/packages/links only without attempts; a linked candidate returns to pending_review.
-- Existing interviews, published snapshot immutability, public/private boundaries, layout and CSS are preserved.
-- New incremental migration: `20261006000300_m3_editor_deletion.sql`; applying it removes no existing rows.
-
-Verification:
-- `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm check:boundaries` and `git diff --check`: PASS.
-- `pnpm test`: PASS, 50 tests. New PostgreSQL coverage includes admin-only delete RPCs, forbidden direct
-  deletes, linked-source protection, candidate/problem independence, candidate reset/reconversion, complete
-  version/package/link cleanup, immutable standalone snapshots and preservation of interviews/debriefs.
-  An injected migration failure also verifies FK/RPC changes roll back atomically.
-- Headless Firefox exercised actual components in an isolated local fixture with simulated server responses:
-  source/candidate add/edit success closes the form, failure preserves inputs, Cancel closes; deletion cancel
-  calls no action, failure preserves the row, success removes it. The real Problem page component makes no
-  detail fetch on its initial list, explicit selection opens it, dirty Close editor asks for confirmation,
-  and deleting the selected problem returns to the list. Screenshots inspected; globals.css remains unchanged.
-- No hosted content was deleted. Hosted authenticated deletion is not claimed tested; its database behavior
-  was exercised only in disposable local PostgreSQL.
-- Commit `78da999` pushed to the existing main integration; its Supabase Preview check completed successfully.
-  The new migration is applied. Anonymous calls to all three delete RPCs return 401 / SQLSTATE 42501.
-  Public metadata before/after application is unchanged: 9 categories and 3 current published problems/versions.
-- Live localhost HTTP checks pass for public catalog/details/Auth pages (200), protected admin/preview/review
-  redirects (307), and absence of private packages in public HTML/RSC. The original port-3001 process remains
-  running; temporary fixture/WebDriver processes were stopped.
-
-Manual follow-up: refresh the Admin pages, save a source/candidate and confirm the form closes. Open a problem
-through Edit draft, then Close editor. Delete only disposable entries without references/interviews to check the
-new authenticated end-to-end actions in your own browser; confirmed deletion is permanent.
-
-## M3 follow-up — consistent save-and-close and action alignment (2026-10-06)
-
-- Successful **Save draft** returns to the problem list with confirmation; **Edit draft** reopens the saved
-  version for continued editing, preview or publication. Validation alone leaves the editor open.
-- Category add/edit now opens explicitly and closes after a successful save, matching Source/Candidate/Draft.
-  All save failures retain entered content. New-problem creation closes/resets its creation form before
-  opening the new draft. The convention is recorded in AGENTS and the content workflow.
-- Draft/review selects share a column; save/validate/publish controls align with their selects at 44px height.
-  Candidate review/edit/reject/delete buttons share a wrapping row, equal heights and 12px spacing.
-  CSS changes are scoped to Admin action rows; existing User panels/navigation remain intact.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries`,
-  and `git diff --check`: PASS.
-- Actual components in an isolated Firefox fixture passed save success/failure, reopen, category add/edit,
-  new-problem form reset, desktop geometry and 500px no-overflow checks. Screenshots inspected.
-  Server responses were simulated; this was not a hosted authenticated mutation test.
-- No database schema, dependency, authentication or milestone changes. No hosted data was modified.
-
-## M3 follow-up — reveal opened editors (2026-10-06)
-
-- Source/Candidate/Problem/Category editors and the new-problem form scroll into view when opened.
-  A shared hook waits for the rendered element, keeps top spacing and respects reduced-motion preferences.
-  Field edits do not trigger scrolling; successful-save closure remains unchanged.
-- Problem selection, candidate conversion, version links, dashboard review links and preview-return links
-  let the editor own scrolling instead of Next's default navigation scroll.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
-  `git diff --check`: PASS.
-- Headless Firefox with actual components and long-list fixtures verified Source add/edit, Candidate selection,
-  Problem open/reopen, Category create/edit, creation-form toggling, stable scrolling during typing and 500px
-  mobile layout. A separate Firefox reduced-motion session verified immediate scrolling. Screenshots inspected.
-  Server responses were simulated; no hosted data was changed. No schema/dependency/milestone changes.
-
-## M3 follow-up — collapsible evaluation subsections (2026-10-06)
-
-- All seven Evaluation package subsections (reference answer, rubric, alternatives, misconceptions,
-  hints, completion criteria and examples) start expanded and can be toggled independently.
-- Light 1px separators remain visible between subsections when expanded, collapsed or mixed.
-  Existing section spacing is retained; focused Firefox checks and desktop/mobile screenshots confirmed this.
-- Native details/summary controls support pointer and keyboard interaction, including read-only versions.
-  Fields stay mounted: collapsing preserves unsaved text, JSON validation state and draft save behavior.
-  Browser form validation reopens invalid sections before focusing the field; toggles do not mark a draft dirty.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
-  `git diff --check`: PASS.
-- Headless Firefox with actual components verified initial expansion, independent toggles, Enter/Space,
-  input retention across rerenders, invalid collapsed JSON blocking save and reopening, save/reopen behavior,
-  read-only navigation and 500px layout. Desktop/mobile screenshots inspected. The isolated fixture simulated
-  server responses; no hosted data was changed. No schema, dependencies or milestone changes.
-
-## M3 follow-up — JSON keyboard indentation (2026-10-06)
-
-- JSON fields support Tab for two spaces and Shift+Tab for outdent, including selected lines without
-  replacing selected tokens. Escape followed by Tab/Shift+Tab preserves forward/backward keyboard navigation.
-  Product help explains these shortcuts. Other textareas retain their existing behavior.
-- Indentation uses the same input/validation path as typing. Invalid JSON still blocks saving and corrected
-  JSON clears the error; a collapsed invalid section reopens as before.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
-  `git diff --check`: PASS.
-- Headless Firefox verified caret/selection retention, single/multiline indentation, line-boundary selections,
-  odd-space/tab outdent, Escape navigation, invalid/corrected JSON and mock save/reopen behavior for the actual
-  components. Both completion groups and visualization JSON use the shared control. No hosted data was changed.
-
-## M3 follow-up — left-column publication controls (2026-10-06)
-
-- Draft status, Save/Validate and Human review/Publish now occupy the left column directly below
-  Sources/provenance. Feedback stays nearby; control rows stack within the narrower panel.
-- Public and private content retain one form with separate disabled/dirty fieldsets. Review approval stays
-  outside content change tracking; editing either column clears approval and Save still validates/saves both.
-- `pnpm lint`, `pnpm typecheck`, `pnpm test` (50 tests), `pnpm build`, `pnpm check:boundaries` and
-  `git diff --check`: PASS.
-- Isolated Firefox verified half-width placement, approval/dirty behavior, both-column save/reopen,
-  hidden invalid JSON blocking save, nearby server errors and 500px stacking without overflow. Desktop/mobile
-  screenshots inspected. Server responses were simulated; no hosted data or database schema was changed.
-
-## Still mock / not implemented
-
-- Interview feedback and progress remain explicitly scripted; no personal correctness/rubric judgment.
-- `/admin/evals` remains a labelled evaluator QA fixture with local-only review controls.
-- No automatic source discovery, external source fetch, LLM authoring or live answer evaluation.
-- No adaptive reasoning progress, adaptive hint selection, evaluator routing or benchmark execution.
-- No Korean localization, billing, queue infrastructure or production website deployment changes.
-- No custom in-app navigation blocker; save before leaving an editor. Browser close/reload warns when dirty.
-
-## Next milestone
-
-**M4 — Provider-agnostic live evaluator and evaluator benchmark.**
-Connect structured evaluator results to the pinned package and server-owned reasoning state; replace scripted
-feedback/progress and deterministic hint ordering only when explicitly authorized. Stop after M3.
+M4-B implementation stops here. Next work requires user direction: activate/verify hosted M4-B, review live QA
+and benchmark annotations; automatic source discovery is only a later milestone candidate.

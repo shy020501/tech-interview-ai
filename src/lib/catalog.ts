@@ -1,5 +1,5 @@
 import type { Category } from "@/types/category";
-import type { Difficulty, ProblemPublic, QuestionType } from "@/types/problem";
+import type { Difficulty, ProblemPublic } from "@/types/problem";
 
 export function categoryDescendants(categories: Category[], id: string): Set<string> {
   const result = new Set<string>();
@@ -34,7 +34,6 @@ export function categoryOptions(categories: Category[], parentId: string | null 
 
 export interface ProblemFilters {
   categoryId: string;
-  questionType: QuestionType | "all";
   difficulty: Difficulty | "all";
   query: string;
 }
@@ -44,8 +43,6 @@ export function filterProblems(problems: ProblemPublic[], categories: Category[]
   const query = filters.query.trim().toLowerCase();
   return problems.filter((problem) => problem.status === "published"
     && (!categoryIds || problem.categoryIds.some((id) => categoryIds.has(id)))
-    && (filters.questionType === "all" || problem.questionType === filters.questionType)
     && (filters.difficulty === "all" || problem.difficulty === filters.difficulty)
-    && (!query || `${problem.title} ${problem.shortDescription} ${problem.tags.join(" ")}`.toLowerCase().includes(query)))
-    .sort((a, b) => Number(b.questionType === "applied") - Number(a.questionType === "applied"));
+    && (!query || `${problem.title} ${problem.shortDescription} ${problem.tags.join(" ")}`.toLowerCase().includes(query)));
 }

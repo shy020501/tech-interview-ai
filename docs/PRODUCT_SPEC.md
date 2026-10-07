@@ -4,11 +4,11 @@
 
 `tech-interview-ai`는 technical interview를 채팅 방식으로 연습하는 서비스다.
 단순한 정의 암기형 질문뿐 아니라 실제 상황에서 근거를 바탕으로 기술적 판단을
-내려야 하는 Advanced / Scenario-based 질문을 핵심 콘텐츠로 한다.
+내려야 하는 scenario-based 질문을 핵심 콘텐츠로 한다.
 
 이 문서는 목표 제품의 명세다. M0에서 독립 Next.js 프로젝트와 개발 환경을 준비했고,
 M1 영어 UI와 M2 Supabase DB/Auth·persistence 위에 M3 수동 콘텐츠 작성/검수/발행을 연결한다.
-현재 repository의 사용자 수정 UI를 기준으로 유지하며 실제 evaluator는 아직 없다.
+현재 repository의 사용자 수정 UI를 기준으로 유지한다. M4-A의 evaluator/benchmark를 M4-B에서 authenticated attempt에 연결한다. 모델은 구조화된 판정만 반환하고, 서버가 안전한 feedback·progress·hint를 구성한다. 범용 chat endpoint는 없다.
 DB 연결에는 사용자가 제공하는 Supabase 프로젝트와 migration/seed 적용이 필요하다.
 
 ## 제품 언어
@@ -34,12 +34,12 @@ DB 연결에는 사용자가 제공하는 Supabase 프로젝트와 migration/see
 - architecture, objective, data, experiment, system 사이의 trade-off를 비교한다.
 - 단일 정답 문구와의 일치보다 가정, 근거, 추론 과정, 타당한 대안의 설명을 중시한다.
 
-Core 질문으로 기초 개념도 연습할 수 있지만 Advanced 질문을 중심으로
+기초 개념도 연습할 수 있으며 실제 상황에서 판단하는 질문을 중심으로
 이해를 실제 의사결정으로 연결하는 경험을 제공한다.
 
 ## 목표 사용자 경험
 
-1. category, question type, difficulty로 문제를 선택한다.
+1. category, difficulty로 문제를 선택한다.
 2. scenario/question, assumptions, 필요한 visualization을 확인한다.
 3. 자신의 reasoning을 자유로운 채팅으로 입력한다.
 4. 시스템은 현재 reasoning이 타당한 방향인지 평가하고 progress를 보여 준다.
@@ -74,22 +74,23 @@ Security (추후 확장 예시)
 독립적인 검색/분류 수단이며 category의 대체물이 아니다. M2에서는 categories와 problem_categories table로
 계층 및 many-to-many 관계를 정의한다.
 
-### Question Type
+### Difficulty
 
-category와 별개로 문제의 형식을 나타낸다.
+문제의 수준은 난이도 하나로 표시한다. User/Admin에서 같은 label을 사용한다.
 
-| Type | 안정적인 내부 key | 의미 |
-| --- | --- | --- |
-| Core | `fundamental` | 기본적인 질문: 개념, 원리, 기본 메커니즘에 대한 이해 |
-| Advanced | `applied` | 응용력을 요구하는 질문: 드론 문제처럼 구체적인 scenario에서의 진단, 선택, 설계와 판단 |
+| 표시명 | 안정적인 내부 key |
+| --- | --- |
+| Beginner | `beginner` |
+| Intermediate | `intermediate` |
+| Advanced | `advanced` |
 
-표시명은 공통 label module에서 관리하며 기존 내부 key와 분리한다. Question Type의
-Advanced는 응용형 문제라는 의미로, 별도 Difficulty의 Advanced와 구분한다.
-예를 들어 드론 문제는 Question Type이 Advanced이고 Difficulty는 Intermediate다.
+Question Type (Core/Advanced)은 제거했다. 기본 개념과 응용 scenario 모두 같은 problem
+model을 사용하며 난이도, category, competency로 탐색/관리한다. 기존 난이도는 재분류하지
+않는다. 예를 들어 Drone Dynamics Adaptation은 계속 Intermediate다.
 
 ### Competency
 
-분야가 아니라 문제를 통해 평가할 능력이다. category 및 Question Type과 독립적으로
+분야가 아니라 문제를 통해 평가할 능력이다. category 및 difficulty와 독립적으로
 관리하며 하나의 문제에 여러 competency를 연결할 수 있다.
 
 - Objective Design
@@ -99,9 +100,6 @@ Advanced는 응용형 문제라는 의미로, 별도 Difficulty의 Advanced와 �
 - Experiment Design
 - Trade-off
 - System Design
-
-difficulty도 별도 속성으로 취급한다. M1은 `beginner`, `intermediate`, `advanced`를
-내부 값으로 사용하고 영어 표시명을 별도로 관리한다.
 
 ## 콘텐츠 품질 원칙
 
@@ -117,9 +115,9 @@ difficulty도 별도 속성으로 취급한다. M1은 `beginner`, `intermediate`
 - 로그인 없이 published/current-version 문제를 탐색하고 scenario/question/visualization을 읽는다.
 - 인터뷰 시작/저장, 메시지/힌트 기록과 review history에는 email/password 로그인이 필요하다.
 - 첫 계정의 role은 user다. Admin은 trusted SQL로 지정하며 서버 검사와 RLS로 보호한다.
-- 현재 UI의 category 9개, 문제 6개 (published: Advanced 2개/Core 1개), private package 3개를
+- 현재 UI의 category 9개, 문제 6개 (published 3개), private package 3개를
   개발 seed로 보존했다. 실제 runtime의 source of truth는 DB이며 자동 mock fallback은 없다.
-- 대표 Drone Dynamics Adaptation은 Advanced / Intermediate다. 기존 문제 문구와 category를 보존한다.
+- 대표 Drone Dynamics Adaptation의 난이도는 Intermediate다. 기존 문제 문구와 category를 보존한다.
 - 같은 사용자의 같은 문제에는 in_progress attempt 하나를 resume한다. Finish 후 새 attempt를
   만들 수 있다. 각 attempt는 시작한 problem version에 고정된다.
 - user/interviewer 메시지를 저장하고, 명시적인 요청마다 해당 version의 검수된 hint 하나를 level/list 순서로 공개한다.
@@ -132,4 +130,7 @@ difficulty도 별도 속성으로 취급한다. M1은 `beginner`, `intermediate`
   보이지 않는다. 실제 연결 검증 상태는 STATUS와 SUPABASE_SETUP을 참조한다.
 - LLM, crawler/discovery, automatic publish, production deployment, Korean localization은 없다.
 
-수동 workflow와 발행 조건은 [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md)를 따른다. M4 evaluator/benchmark는 아직 구현하지 않는다.
+수동 workflow와 발행 조건은 [CONTENT_WORKFLOW.md](CONTENT_WORKFLOW.md)를 따른다.
+M4-A의 evaluator/benchmark 계약과 실행 방법은 [EVALUATOR.md](EVALUATOR.md)를 따른다.
+LLM은 자유 답변을 생성하는 chatbot이 아닌 제한된 reasoning/intent 평가기다. 검증된 structured result를
+서버 reducer와 progress 계산에 사용하며 실제 사용자 interview 연결은 M4-B에서 별도로 승인받는다.

@@ -5,7 +5,7 @@ import type { AttemptSession } from '@/types/attempt';
 import type { MessageRow } from '@/types/database';
 import { validUuid } from '@/lib/auth/validation';
 
-const columns = 'id, problem_id, problem_version_id, status, started_at, completed_at' as const;
+const columns = 'id, problem_id, problem_version_id, status, started_at, completed_at, progress, core_complete, evaluation_mode' as const;
 export async function getAttempt(id: string): Promise<AttemptSession | null> {
   const user = await requireUser('/review');
   if (!validUuid(id)) return null;
@@ -23,17 +23,18 @@ export async function getAttempt(id: string): Promise<AttemptSession | null> {
       if (result.data.length < 500) return messages;
     }
   }
-  const [messages, hints] = await Promise.all([
+  const [messages, hints, evaluation] = await Promise.all([
     loadMessages(),
     supabase.from('hint_events').select('hint_id, displayed_text, created_at').eq('attempt_id', id).order('created_at'),
+    supabase.rpc('get_evaluation_status',{p_attempt_id:id}),
   ]);
-  if (hints.error) throw new Error('Unable to load the conversation.');
-  const turns = messages.filter((message) => message.role === 'user').length;
+  if (hints.error || evaluation.error) throw new Error('Unable to load the conversation.');
   return { id: data.id, problemId: data.problem_id, problemVersionId: data.problem_version_id, status: data.status,
     startedAt: data.started_at, completedAt: data.completed_at,
     messages: messages.map((message) => ({ id: message.id, role: message.role, content: message.content, createdAt: message.created_at })),
     hintsUsed: hints.data.map((hint) => ({ hintId: hint.hint_id, requestedAt: hint.created_at, displayedText: hint.displayed_text })),
-    demoProgress: turns ? [60, 70, 75][Math.min(turns - 1, 2)] : 0,
+    progress: Number(data.progress), coreComplete:data.core_complete, evaluatorMode:data.evaluation_mode,
+    evaluation:evaluation.data as AttemptSession['evaluation'],
   };
 }
 export async function getActiveAttempt(problemId: string) {
@@ -63,5 +64,5 @@ export async function getAttemptDebrief(id:string):Promise<import('@/types/autho
   if(error)throw new Error('Unable to load reference material.');
   const value=data as unknown as import('@/types/authoring').ReleasedDebrief;
   if(!value||typeof value.referenceAnswer!=='string'||!Array.isArray(value.keyIdeas)||!Array.isArray(value.alternativeApproaches))throw new Error('Unable to load reference material.');
-  return {problemVersionId:value.problemVersionId,referenceAnswer:value.referenceAnswer,keyIdeas:value.keyIdeas.map(x=>({label:x.label,description:x.description})),alternativeApproaches:value.alternativeApproaches.map(x=>({id:x.id,title:x.title,description:x.description}))};
+  return {progress:value.progress,evaluated:value.evaluated,areas:value.areas?.map(x=>({label:x.label,status:x.status})),problemVersionId:value.problemVersionId,referenceAnswer:value.referenceAnswer,keyIdeas:value.keyIdeas.map(x=>({label:x.label,description:x.description})),alternativeApproaches:value.alternativeApproaches.map(x=>({id:x.id,title:x.title,description:x.description}))};
 }

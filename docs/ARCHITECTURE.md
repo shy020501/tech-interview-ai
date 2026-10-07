@@ -3,9 +3,9 @@
 ## 적용 범위
 
 M0의 Next.js App Router, TypeScript, Tailwind CSS, ESLint 구성을 유지한다.
-**M3는 M2 DB/Auth와 현재 UI 위에 수동 콘텐츠 작성·검수·발행을 연결한다.**
+**M4-B는 M4-A의 structured evaluator를 실제 owned attempt에 연결한다.**
 M1 이후의 현재 layout, CSS, typography, panel sizing이 source of truth다.
-Source → Candidate → Draft → Preview → Validate → Publish는 수동으로 구현한다. LLM provider/evaluator와 source worker/job은 구현하지 않는다.
+Source → Candidate → Draft → Preview → Validate → Publish는 수동으로 유지한다. Evaluator는 범용 chatbot이 아니며, live attempt와 offline benchmark가 같은 engine을 사용한다. source worker/job은 구현하지 않는다.
 실제 Supabase credential이 없는 환경에서는 연결 코드를 준비하되 live 검증과 구분한다.
 
 ## 애플리케이션과 권한
@@ -18,7 +18,7 @@ route와 책임을 나눈다.
 | User | `/` → `/problems`, `/problems`, `/problems/[slug]`, `/review` | 문제 선택, 연습, 종료 후 복습 |
 | Admin | `/admin`, `/admin/sources`, `/admin/candidates`, `/admin/problems`, `/admin/categories`, `/admin/evals` | 콘텐츠 제작, 검수, publish, evaluator 품질 확인 |
 
-사용자는 category/type/difficulty로 문제를 선택하고 문제와 visualization을 본다.
+사용자는 category/difficulty로 문제를 선택하고 문제와 visualization을 본다.
 reasoning을 채팅으로 입력하고 progress를 확인하며 필요할 때 Hint를 요청한다.
 문제 종료 후 debrief를 확인한다.
 
@@ -41,7 +41,7 @@ private data service에서 requireAdmin()을 호출한다. 미인증은 /login�
 | assumptions | reasoning rubric / reasoning graph |
 | visualization | acceptable alternative approaches |
 | category, tags, competency 표시 정보 | misconceptions |
-| question type | hint ladder |
+| | hint ladder |
 | difficulty | completion criteria |
 | | evaluation examples |
 
@@ -59,14 +59,20 @@ evaluation examples는 review에도 포함되지 않는다. Admin 편집 화면�
 ## 분류
 
 category는 DB 기반 계층 구조다. category ID와 부모 관계를 중심으로 확장하며 코드
-enum으로 분야를 고정하지 않는다. 하나의 문제를 여러 category/tag에 연결할 수
-있어야 한다. Core/Advanced인 Question Type과 Objective Design, Failure
-Diagnosis 등의 Competency는 category와 별개다. Core는 기본 개념 질문, Advanced는
-scenario에서 응용력을 요구하는 질문이다. 표시명은 `questionTypeLabels`에서 관리하고
-기존 semantic key인 `fundamental`/`applied`를 유지한다. User/Admin/필터는 같은 mapping을
-공유하며 표시명 변경이 data contract나 분기 조건을 바꾸지 않는다. Question Type과
-Difficulty는 독립적이므로 Advanced 유형이 Intermediate 난이도일 수 있다.
-M2 schema는 categories, problems, problem_versions, problem_categories로 이 관계를 구현한다.
+enum으로 분야를 고정하지 않는다. 한 문제는 여러 category/tag와 competency를 가질 수 있다.
+Difficulty는 `beginner` / `intermediate` / `advanced`이고 `difficultyLabels`에서 영어 표시명을
+관리한다. Question Type (Core/Advanced)은 public/domain contract, User/Admin UI, 저장/발행
+검증과 DB에서 제거했다. 기존 difficulty 값은 변경하거나 이전 type에서 추론하지 않는다.
+
+`20261007000100_remove_question_type.sql`은 두 table의 `question_type` 컬럼만 제거하고
+candidate 작성/전환, draft 저장, 새 version 복사, publish RPC와 content validator를 같은
+원자적 migration에서 교체한다. 기존 RPC 권한/role check/발행본 보호/RLS는 유지한다.
+기존 문제·candidate·version·package·attempt row 및 version pinning은 보존한다.
+적용된 M2/M3 migration과 해당 단계의 regression test는 역사적 schema를 그대로 보존한다.
+앱 코드와 새 migration을 함께 적용해야 하며 기존 DB를 reset/re-seed하지 않는다.
+
+목록 필터는 검색·category·difficulty로 구성된다. 별도 유형 우선 정렬 없이 repository의
+발행일 내림차순을 유지하며 현재 첫 카드의 강조 layout은 그대로 사용한다.
 
 ## 언어와 국제화 방향
 
@@ -145,8 +151,9 @@ rubric과 hint 단계가 원문과 일치하는지 검수하고 technical termin
 | 선택 기준 | 비용보다 정확도를 우선, 강한 모델 사용 가능 | 저렴하고 빠른 lightweight LLM 우선 |
 | 결과 | human review 대상 draft | 서버가 검증하는 structured evaluation |
 
-provider-agnostic interface를 경계로 사용한다. M3는 `EvaluationResult` 같은 데이터
-계약만 정의하며 다음 provider interface와 adapter는 문서상의 개념이다.
+provider-agnostic interface를 경계로 사용한다. M3의 persisted `EvaluationResult`는 유지하고
+M4-A의 버전 1 `EvaluatorResult`/`EvaluationInput`/`EvaluatorProvider` 계약을 분리한다.
+AuthoringProvider는 아직 문서상의 개념이다.
 
 ```text
 EvaluatorProvider
@@ -164,7 +171,9 @@ provider/model 설정은 환경 설정으로 주입한다. authoring, evaluator,
 후보는 OpenAI, Google, Anthropic, DeepSeek, Qwen, Mistral, OpenRouter 기반 provider,
 기타 저가 LLM API, 장기적으로 self-hosted model이다. 실제 provider는 검수된 평가
 예제로 품질, 정답 유출 여부, latency, 비용, structured output 준수 여부를 benchmark한
-뒤 선택한다. M3에서도 후보를 선택하거나 SDK를 설치하거나 API를 호출하지 않는다.
+뒤 운영 설정을 확정한다. 사용자는 초기 benchmark 설정으로 GPT-6 Luna medium/xhigh를 선택했다.
+M4-A에는 SDK 없는 OpenAI-compatible transport와 명시적인 profile 선택만 준비하며 실제 사용자 요청 routing은 연결하지 않는다.
+유료 호출은 명시적인 profile/model configuration과 별도 eval:live 명령에서만 수행한다.
 
 ## Evaluation scalability
 
@@ -296,24 +305,24 @@ attempt table들의 직접 INSERT/UPDATE/DELETE 권한은 없다. 대신 아래 
 2. start_interview는 DB의 사용자/문제를 잠그고 기존 in_progress attempt를 반환하거나 current version으로 생성한다.
    사용자·문제당 활성 attempt 하나의 unique index가 중복 생성을 막는다. 완료 후 여러 회차를 만들 수 있다.
 3. 문제를 다시 열면 본인의 활성 attempt와 고정된 version 내용으로 복원한다. 공개 catalog에는 current version을 쓴다.
-4. append_interview_turn은 본인 attempt를 잠그고 사용자 메시지 → 고정 mock feedback을 한 transaction에 저장한다.
-   request_id로 네트워크 실패 후 재시도가 중복 저장되지 않게 한다. 클라이언트는 성공 후에만 입력을 지운다.
-5. request_interview_hint는 level/list 순서의 미사용 hint 하나와 system_hint 메시지를 원자적으로 저장한다.
-   같은 request ID 재시도는 중복을 만들지 않으며, 새로운 클릭은 다음 hint를 요청한다. adaptive 선택은 없다.
-6. finish_interview는 completed_at을 기록하고 이후 새 메시지를 거절한다. 성공 후 /review?attempt=...로 이동한다.
-7. review는 본인의 completed attempt만 허용한다. /review에는 최근 완료 20개를 표시한다. 완료는 사용자 선언이지
-   rubric 충족 판정이 아니다. 소유권/완료를 DB에서 재검사한 별도 debrief RPC가 reference/key ideas/대안만 공개한다.
+4. M4-B attempt-scoped Server Action은 소유권/상태/길이/쿼터를 확인한 DB claim 뒤 user message를 저장한다.
+   provider 응답은 schema/semantic/evidence 검증을 거친다. 필요 시 독립 strong 평가 후 최종 결과만 반영한다.
+5. message_evaluations의 active unique index, expiring token과 revision 검사가 동시 요청/늦은 결과를 막는다.
+   user request UUID 및 retry UUID로 중복을 방지한다. 실패해도 메시지/기존 progress는 보존한다.
+6. Hint는 server-only context에서 현재 state/prerequisites/사용 이력으로 하나만 선택한다. 추가 LLM 호출과 progress 증가가 없다.
+7. Finish는 사용자의 종료 선언이다. 완료된 본인의 debrief에서만 reference와 검수된 key ideas/대안 및 covered/unresolved 영역을 공개한다.
 
-AttemptSession은 메시지/사용한 힌트/demo progress만 포함한 projection이다. reasoning_state는 browser에
-전달하지 않는다. 현재 progress는 서버가 메시지 수로 0 → 60 → 70 → 75를 표시하는 시연 값이다.
-M2에서 유지한 fixed feedback 문구는 원자적 RPC 내부에 있으며 provider/model/LLM 호출은 없다.
+AttemptSession에는 public progress/coreComplete, 공개한 메시지/힌트, 제한된 evaluation 상태만 들어간다.
+전체 reasoning_state, rubric, private package, raw provider 응답, 비용/profile은 일반 browser에 보내지 않는다.
+판정은 confirmed → partial/contradicted처럼 되돌아갈 수 있다. M4-A reducer가 sequence/revision을 검사하고,
+서버가 weight 기반 progress를 계산한다. 이전 M3 mock state는 실제 평가의 근거로 사용하지 않는다.
 
-향후 EvaluationResult의 node별 evidence/contradiction을 검증한 서버가 ReasoningState를 갱신한 뒤
-progress를 계산한다. 판정은 confirmed → partial처럼 되돌아갈 수 있고 rubric prerequisite는 그래프다.
-provider-agnostic interface와 offline authoring/online evaluation 분리는 유지한다. 실제 provider,
-stronger evaluator escalation, adaptive hints, benchmark는 후속 승인 범위다.
+RPC에 auth.uid()만 검사하면 일반 browser가 private criteria를 가져가거나 상태를 위조할 수 있다.
+M4-B는 publishable-key 사용자 세션에 더해 **서버 전용 evaluator capability**를 검사하는 한정된 RPC를 쓴다.
+해시는 unexposed app_private schema에 보관하며 trusted SQL로만 설정한다. Supabase service-role key는 없다.
+실제 모델/서버 설정·schema 적용·테스트 절차는 [EVALUATOR](EVALUATOR.md#10-live-runtime-setup-and-trust-boundary)를 따른다.
 
-## Manual content lifecycle, versioning and M4 boundary
+## Manual content lifecycle and versioning (M3 foundation)
 
 - Sources and question_candidates are admin-only records. Candidate source is optional. Source usage status
   records human provenance decisions and never infers reuse rights from URL visibility. No external fetch runs.
@@ -340,7 +349,7 @@ stronger evaluator escalation, adaptive hints, benchmark는 후속 승인 범위
 - Ordinary users browse current publication. Owners can resume their pinned version and retain archived
   history. Review access remains owner-only even for admins; no service-role credential is introduced.
 - Existing User/Admin layout, CSS, typography and navigation stay intact. New forms use the current design
-  components. Source/candidate/problem/category data have one DB source of truth; evaluator QA alone is a demo.
+  components. Source/candidate/problem/category data have one DB source of truth. M4-B adds actual evaluator QA.
 - M4 can use the version's structured EvaluationResult/examples, rubric graph, alternatives/misconceptions and
   stored ReasoningState. It will replace scripted feedback/progress and deterministic hint ordering separately.
   M3 adds no LLM adapter, evaluator, benchmark, discovery worker, automatic publishing or localization.
@@ -388,3 +397,103 @@ and browser observations are recorded in STATUS without treating unexecuted chec
 공식 참고: [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/nextjs),
 [RLS와 grants](https://supabase.com/docs/guides/database/postgres/row-level-security),
 [API keys](https://supabase.com/docs/guides/getting-started/api-keys).
+
+## M4-A foundation — historical implementation boundary
+
+The following records M4-A's scope at completion. M4-B integration below supersedes its CLI-only and mock-interview restrictions.
+
+M4-A runs separately from the unchanged M3 application. `src/lib/evaluator/` contains the provider interface,
+compact builder, schema/semantic/evidence validators, reducer, progress/completion/hint targeting, guards and
+escalation policy. `scripts/evals/` loads cases and runs the explicit CLI. Detailed contracts, defaults,
+metric denominators, provider setup and commands are documented in [EVALUATOR.md](EVALUATOR.md).
+
+- **LLM is an evaluator, not a chatbot.** No generic chat endpoint exists. Future live routes must be tied to
+  authenticated owned attempts; M4-A introduces no route/action/UI integration. No tools are exposed to models.
+- Input explicitly projects question/scenario/assumptions, compact rubric, alternatives, misconceptions and
+  completion-relevant IDs. It excludes reference answer, hint ladder, examples and author/provenance notes.
+  Misconception detectionNotes are evaluation conditions and are retained as detectionCriteria, along with
+  their labels; administrative rubric notes remain excluded. This distinction matters for tentative proposals
+  versus explicit wrong guarantees.
+  Fixed policy/problem prefix and bounded state/recent user message suffix prepare for caching without
+  assuming a provider implements it. Examples remain ground truth, never implicit prompt calibration data.
+- The versioned M4 result adds intent and restricted feedback/escalation categories, contradicted node status,
+  evidence and optional clarification classification. M3 stored package/examples/UI retain their current schema.
+  The loader scores their supplied labels and leaves missing intent labels unscored. There is no schema migration.
+- Provider results are untrusted. Extra answer/progress/free-feedback fields, malformed JSON, invalid IDs,
+  nonexistent quotes, missing current evidence, duplicate/conflicting assessments and nonreasoning progress
+  are rejected. A frozen runtime validation marker gates reducer use. Failure never becomes fake progress.
+  Policy v2 disallows partial/confirmed credit on nodes linked to an active detected misconception and requires
+  a related assessed anchor. A different unaffected node can retain credit. Contradiction/uncertainty do not
+  require fabricating an unsupplied misconception ID. Structural validation does not establish technical truth.
+- Off-topic/injection/direct answer/hint/meta requests return no rubric assessments. Valid assumption questions,
+  technical challenges and being unsure are distinguished from abuse. Prompt policy is supplemented by the
+  output schema, no tools, restricted context and fail-closed server validation, not treated as a sole defense.
+- A pure reducer supports evidence-backed downgrades/corrections, sequence/revision checks and evidence provenance.
+  Server code calculates weighted progress. Completion uses M3 required nodes plus one alternative group.
+  Hint targeting is pure preparation only. Actual Hint/Finish behavior and attempt.reasoning_state are unchanged.
+- Escalation is a configurable recommendation in test/benchmark reports, not another API call. complex/strong_only
+  modes can request stronger review; no automatic second call or confidence threshold is introduced.
+- Model registry entries own model/protocol capabilities/env references/pricing. The native-fetch OpenAI-compatible
+  adapter normalizes wire format only. The user-selected `config/evaluator-profiles.json` maps default to Luna
+  medium and difficult modes to Luna xhigh. `selectEvaluatorProfile(registry, mode = 'default')` is a pure helper;
+  the mode comes from trusted caller configuration, never user text or a model instruction. The explicit CLI
+  can select a mode or profile. No app/UI calls are added and escalation recommendations do not call the difficult profile.
+  Optional reasoningEffort is checked against profile capability values and sent as reasoning_effort; providers
+  without that capability receive no extra parameter. Luna profiles omit temperature and include reasoning in
+  their output-token ceilings. Model/effort is captured in report metadata. The generic example remains disabled;
+  new adapters implement the same interface without changing domain logic. No model name appears in the reducer.
+- Guard counts and quotas are supplied inputs, not a deployed rate limiter. M4-B needs atomic per-minute,
+  per-attempt/day, token and escalation budgets, repeated-abuse fixed responses and durable assessment ordering.
+- Benchmark CLI supports static/global fixtures and selected DB example versions using an authenticated admin
+  session, profiles.role and existing RLS. The DB loader only reads. No secret/service-role runtime key is added.
+- Runs store ignored local artifacts with structured labels/metrics/hashes, not full prompts, conversations, private
+  packages, evidence quotes, keys or raw provider responses. AssessmentRunMetadata prepares profile/version/run
+  references and human QA labels without a premature DB table. DB logging belongs with M4-B live persistence.
+- Reliability and cost count retries; unknown token usage/prices are explicitly unavailable. Classification, false
+  confirmations, misconceptions, escalation, evidence and latency can be compared before live deployment.
+  Dry fixture playback tests the harness and does not establish any real model's quality or abuse resistance.
+- Existing User/Admin component structure, CSS, routes, RLS, version immutability and public/private projections
+  remain the source of truth. `/admin/evals` still has its clearly labelled M3 demo. English-first identifiers
+  and offline authoring/online evaluation separation remain unchanged. No authoring LLM/discovery is added.
+
+M4-B will connect a selected, benchmarked evaluator to owned attempts, safe template feedback/progress,
+controlled hint release and durable quotas/order. That integration is explicitly outside this milestone.
+
+The `reasoning-v2` benchmark has explicit calibration/holdout families, complete reasoning-node labels and
+AI-draft annotation/review metadata. Default runs select calibration; holdout requires explicit selection.
+Original 47-case labels remain selectable as legacy and existing DB labels are not rewritten. The review export
+contains static synthetic cases/criteria only; live artifacts still omit prompts, quotes and raw provider text.
+Scores are separated by split with label-coverage/per-status metrics. No labels are represented as expert-reviewed,
+and no live quality improvement is inferred from offline fixture playback. See [benchmark review](../benchmarks/README.md).
+
+## M4-B — durable live evaluation
+
+- Live mode is explicit. Configured medium/strong IDs come from registry selection or server env, never a client.
+  Missing mode/profile/key/capability fails closed; development mock is opt-in and forbidden in production.
+- There is no generic chat endpoint. Existing attempt Server Actions derive identity, version, rubric and state
+  from the signed-in owner. Models have no tools and return the same limited structured contract as the CLI.
+- Before network work, a transactional claim stores the user message and reserves one active evaluation.
+  Profile-row locks serialize cross-attempt user budgets; an attempt-row lock, active unique index and revision
+  checks protect ordering. Expiring claims prevent permanent locks. Provider requests are individually reserved.
+- Primary and optional strong use the original input independently. Only a validated final result passes the
+  shared reducer. Invalid, still-unreliable or failed runs preserve the saved state/progress. Retries reuse the
+  saved message and cannot duplicate successful transitions. Remote billing after a process crash cannot be
+  guaranteed exactly once; unknown observations stay visible and count against request budgets.
+- Templates map intent/feedback category to fixed English text. Clarification only repeats public assumptions;
+  meta repeat uses the public question. No feedback includes private node names, explanations or answer concepts.
+- Adaptive hints use state/prerequisites/used IDs with no model call; a revision-checked transaction releases one
+  reviewed hint. Already revealed hint provenance enters bounded evaluation context, never as user evidence.
+- Completion criteria set a coverage notice, not automatic Finish. Completed-owner review uses deterministic
+  saved-state summaries and approved versioned content; no generative debrief request is made.
+- message_evaluations groups final outcomes; assessment_runs logs every role/retry, validated result, versions,
+  usage/latency/cost availability and sanitized errors. Both are admin-read-only with RLS; owners receive only
+  public status/progress projections. Full prompts, API keys and raw invalid output are never stored.
+- Admin QA filters recent records and stores human judgments/notes. Corrections do not replay past attempts.
+  The metadata supports later benchmark export. No authoring LLM, discovery, analytics platform or billing is added.
+- The migration adds two public RLS tables and one private configuration table, plus safe progress/mode and
+  private abuse fields on attempts. Old scripted turn/hint RPCs lose public execution; existing rows remain.
+  The private capability is verified alongside user ownership, with empty search_path and restricted grants.
+
+Detailed config defaults, quota meaning, setup/rotation, retry failure limits, logging and test workflow are in
+[EVALUATOR](EVALUATOR.md). Hosted migration/browser verification is separate from disposable PostgreSQL tests;
+actual execution evidence and limitations are recorded in [STATUS](STATUS.md).

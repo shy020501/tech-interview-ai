@@ -1,8 +1,7 @@
-import type { Difficulty, PublicationStatus, QuestionType } from "@/types/problem";
+import type { Difficulty, PublicationStatus } from "@/types/problem";
 import type { RubricStatus } from "@/types/evaluation";
 import type { SourceType } from "@/types/source";
 
-export const questionTypeLabels: Record<QuestionType, string> = { fundamental: "Core", applied: "Advanced" };
 export const difficultyLabels: Record<Difficulty, string> = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
 export const publicationLabels: Record<PublicationStatus, string> = { draft: "Draft", needs_review: "Needs Review", published: "Published", archived: "Archived" };
 export const rubricLabels: Record<RubricStatus, string> = { unseen: "Unseen", partial: "Partial", confirmed: "Confirmed", misconception: "Misconception", uncertain: "Uncertain" };
